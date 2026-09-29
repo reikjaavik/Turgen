@@ -127,6 +127,8 @@ function drawObjects() {
     if (focus.highlight.has(o.id)) g.classList.add('hl');
     else if (anyHl) g.classList.add('dim');
     if (focus.pulse === o.id) g.classList.add('pulse');
+    // Подписи: при обычном масштабе — только у центра аула и выбранных мест (иначе налезают); при приближении — у всех.
+    if (k >= 1.8 || o.type === 'village' || o.approx || focus.highlight.has(o.id)) g.classList.add('labeled');
     const label = opts.label(o);
     const title = el('title');
     title.textContent = label;

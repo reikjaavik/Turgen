@@ -23,7 +23,7 @@ export function place(ll) {
   marks = { ...marks, [selected]: { lat: +ll.lat.toFixed(6), lon: +ll.lon.toFixed(6) } };
   save();
   // Следующее неотмеченное место — чтобы размечать подряд.
-  const next = candidates().find((p) => !marks[p.id]);
+  const next = candidates().find((p) => !marks[p.id] && (p.lat == null || p.approx));
   selected = next?.id ?? null;
   return true;
 }
@@ -35,12 +35,13 @@ export function remove(id) {
 export function clearAll() { marks = {}; save(); }
 export const exportJson = () => JSON.stringify(marks, null, 2);
 
-// Кандидаты: места без координат и места, показанные «примерно».
-const candidates = () => db.places.filter((p) => p.lat == null || p.approx);
+// Все места: сначала без координат и «примерные», затем уже отмеченные (их можно переставить).
+const unplaced = (p) => p.lat == null || p.approx;
+const candidates = () => [...db.places.filter(unplaced), ...db.places.filter((p) => !unplaced(p))];
 
 export function markView() {
   const list = candidates();
-  if (selected == null) selected = list.find((p) => !marks[p.id])?.id ?? null;
+  if (selected == null) selected = list.find((p) => !marks[p.id] && unplaced(p))?.id ?? null;
   const n = Object.keys(marks).length;
   const html = `<div class="page mark">
     <h1>📍 ${esc(t('mark.title'))}</h1>
@@ -50,7 +51,7 @@ export function markView() {
       return `<li class="${p.id === selected ? 'selected' : ''}">
         <button type="button" class="mark-pick" data-mark-select="${esc(p.id)}" aria-pressed="${p.id === selected}">
           <strong>${text(p.name)}</strong>
-          <span class="muted">${m ? `✓ ${m.lat}, ${m.lon}` : p.approx ? esc(t('mark.approx')) : esc(t('mark.none'))}</span>
+          <span class="muted">${m ? `✓ ${esc(t('mark.draft'))} ${m.lat}, ${m.lon}` : p.approx ? esc(t('mark.approx')) : p.lat == null ? esc(t('mark.none')) : `${esc(t('mark.has'))} ${p.lat}, ${p.lon}`}</span>
         </button>
         ${m ? `<button type="button" class="mark-del" data-mark-remove="${esc(p.id)}" aria-label="${esc(t('mark.remove'))}">✕</button>` : ''}
       </li>`;

@@ -302,14 +302,29 @@ body[data-drawer="closed"] .drawer { display: none; }
 .map-object { transition: opacity .4s ease; cursor: pointer; }
 .map-object[data-visible="false"] { opacity: 0; pointer-events: none; }
 .map-object.dim { opacity: .35; }
-.map-object circle { fill: var(--accent); stroke: var(--surface); stroke-width: 3; vector-effect: non-scaling-stroke; }
-.map-object.hl circle { fill: var(--t-war); }
+.map-object circle { stroke: var(--surface); stroke-width: 3; vector-effect: non-scaling-stroke; }
 .map-object.approx circle { fill: var(--accent); fill-opacity: .15; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 5; }
 .map-object.approx.hl circle { fill-opacity: .3; stroke-width: 3; }
 .map-object text, .map-draft text {
   font: 600 calc(15px / var(--k, 1)) system-ui, sans-serif; fill: var(--ink);
   paint-order: stroke; stroke: var(--land); stroke-width: calc(4px / var(--k, 1));
 }
+.map-object text { display: none; }
+.map-object.labeled text, .map-object:hover text, .map-object:focus text { display: inline; }
+/* Цвет по группе: социальные объекты, хозяйство, память, центр аула. */
+.map-object, .dot { --c: var(--t-postwar); }
+.type-culture, .type-service, .type-health, .type-school, .type-shop, .type-office { --c: var(--t-postwar); }
+.type-farm, .type-industry, .type-building { --c: var(--t-agro); }
+.type-memorial { --c: var(--t-war); }
+.type-village { --c: var(--accent); }
+.map-object circle { fill: var(--c); }
+.map-object.hl circle { stroke: var(--ink); }
+.legend {
+  position: absolute; right: 10px; top: 10px; margin: 0; padding: 8px 10px; list-style: none;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: .8rem; display: grid; gap: 3px;
+}
+.legend[hidden] { display: none; }
+.legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c); vertical-align: -1px; }
 .map-object.pulse circle { animation: pulse 1.4s ease-in-out infinite; }
 @keyframes pulse { 50% { stroke-width: 9; stroke: var(--accent); } }
 .map-draft circle { fill: var(--surface); stroke: var(--focus); stroke-width: 3; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }

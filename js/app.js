@@ -59,6 +59,9 @@ function applyFocus() {
   box.querySelector('ul').innerHTML = unmarked.map((pl) => `<li><a href="${link.place(pl.id)}">${text(pl.name)}</a></li>`).join('')
     + `<li class="mark-link"><a href="#/mark">📍 ${esc(t('mark.title'))}</a></li>`;
 
+  // Легенда — только когда на схеме есть отмеченные объекты кроме центра аула.
+  $('#legend').hidden = !db.places.some((pl) => pl.lat != null && pl.type !== 'village' && placeInDecade(pl, decade));
+
   const marking = !!state.current?.marking;
   setDrafts(marking ? Mark.getMarks() : {});
   setMapClick(marking ? (ll) => { if (Mark.place(ll)) render(); } : null);
