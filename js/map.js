@@ -63,6 +63,16 @@ export function isVisible(o, year) {
   return from <= year + 9 && to >= year;
 }
 
+// Обратная проекция: точка SVG → широта/долгота (для режима разметки).
+export function unproject(x, y) {
+  const p = projection;
+  if (!p) return null;
+  return {
+    lon: p.minLon + (x / p.width) * (p.maxLon - p.minLon),
+    lat: p.maxLat - (y / p.height) * (p.maxLat - p.minLat),
+  };
+}
+
 function project(lat, lon) {
   const p = projection;
   return {

@@ -1,0 +1,14 @@
+{
+  "name": "turgen-history",
+  "private": true,
+  "type": "module",
+  "description": "Интерактивная карта-презентация села Турген (XX век)",
+  "scripts": {
+    "validate": "node scripts/validate-data.mjs",
+    "base-map": "node scripts/build-base-map.mjs",
+    "photos": "node scripts/prepare-photos.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.5"
+  }
+}

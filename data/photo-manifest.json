@@ -1,0 +1,162 @@
+[
+ {
+  "id": "kazbay",
+  "slide": 6,
+  "media": "image7.jpeg"
+ },
+ {
+  "id": "karta-1893",
+  "slide": 7,
+  "media": "image8.png"
+ },
+ {
+  "id": "karta-staraya",
+  "slide": 8,
+  "media": "image9.jpeg"
+ },
+ {
+  "id": "derevyanko-drevo",
+  "slide": 14,
+  "media": "image25.png"
+ },
+ {
+  "id": "turspekov",
+  "slide": 20,
+  "media": "image30.jpeg"
+ },
+ {
+  "id": "burumbaev",
+  "slide": 20,
+  "media": "image41.jpeg"
+ },
+ {
+  "id": "rodnov",
+  "slide": 21,
+  "media": "image42.jpeg"
+ },
+ {
+  "id": "fedorenko-ae",
+  "slide": 21,
+  "media": "image43.jpeg"
+ },
+ {
+  "id": "kochetkov",
+  "slide": 22,
+  "media": "image44.jpeg"
+ },
+ {
+  "id": "melnik",
+  "slide": 23,
+  "media": "image47.jpeg"
+ },
+ {
+  "id": "tkachenko-ms",
+  "slide": 24,
+  "media": "image48.jpeg"
+ },
+ {
+  "id": "ratushnyak",
+  "slide": 24,
+  "media": "image49.jpeg"
+ },
+ {
+  "id": "toropeev",
+  "slide": 25,
+  "media": "image50.jpeg"
+ },
+ {
+  "id": "pasichenko",
+  "slide": 25,
+  "media": "image51.jpeg"
+ },
+ {
+  "id": "lakutya",
+  "slide": 26,
+  "media": "image52.jpeg"
+ },
+ {
+  "id": "ivanov-vr",
+  "slide": 28,
+  "media": "image56.jpeg"
+ },
+ {
+  "id": "orlov",
+  "slide": 28,
+  "media": "image57.jpeg"
+ },
+ {
+  "id": "alsaev",
+  "slide": 29,
+  "media": "image58.jpeg"
+ },
+ {
+  "id": "bisikeev",
+  "slide": 29,
+  "media": "image59.jpeg"
+ },
+ {
+  "id": "borovik",
+  "slide": 30,
+  "media": "image60.jpeg"
+ },
+ {
+  "id": "derevyanko-ik-1",
+  "slide": 35,
+  "media": "image66.jpeg"
+ },
+ {
+  "id": "derevyanko-ik-2",
+  "slide": 35,
+  "media": "image67.jpeg"
+ },
+ {
+  "id": "inyakin",
+  "slide": 36,
+  "media": "image68.jpeg"
+ },
+ {
+  "id": "tkachenko-df",
+  "slide": 36,
+  "media": "image69.jpeg"
+ },
+ {
+  "id": "samuseva",
+  "slide": 38,
+  "media": "image72.jpeg"
+ },
+ {
+  "id": "toropeeva",
+  "slide": 40,
+  "media": "image76.jpeg"
+ },
+ {
+  "id": "kiriluk",
+  "slide": 41,
+  "media": "image19.jpeg"
+ },
+ {
+  "id": "ryspaev",
+  "slide": 45,
+  "media": "image90.png"
+ },
+ {
+  "id": "gueva",
+  "slide": 45,
+  "media": "image92.png"
+ },
+ {
+  "id": "tyagunov",
+  "slide": 45,
+  "media": "image91.png"
+ },
+ {
+  "id": "gazeta-1947",
+  "slide": 43,
+  "media": "image81.jpeg"
+ },
+ {
+  "id": "kolkhoz-brigada",
+  "slide": 43,
+  "media": "image82.jpeg"
+ }
+]

@@ -94,7 +94,7 @@ a { color: var(--accent); }
 }
 #map { display: block; width: 100%; height: 100%; }
 .map-status {
-  position: absolute; left: 12px; bottom: 8px; margin: 0;
+  position: absolute; left: 12px; bottom: 8px; margin: 0; max-width: 62%;
   font-size: .85rem; color: var(--muted);
 }
 .map-credit { position: absolute; right: 10px; bottom: 6px; margin: 0; font-size: .75rem; color: var(--muted); }
@@ -168,3 +168,23 @@ a { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+.people { list-style: none; padding-left: 0; }
+.people li { padding: 8px 0; border-top: 1px solid var(--line); }
+.people li:first-child { border-top: 0; }
+.life { color: var(--muted); font-size: .9rem; }
+.photos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.photos figure { margin: 0; }
+.thumb { padding: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); cursor: zoom-in; overflow: hidden; display: block; }
+.thumb img { display: block; height: 84px; width: auto; max-width: 140px; object-fit: cover; }
+.about { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
+.about summary { cursor: pointer; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-size: 1rem; }
+.about ul { padding-left: 1.1em; margin: 8px 0 0; }
+.about li { margin-bottom: 10px; }
+.lightbox { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 96vh; color: var(--ink); }
+.lightbox::backdrop { background: rgba(0,0,0,.75); }
+.lightbox figure { margin: 0; background: var(--surface); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; max-width: 92vw; }
+.lightbox img { max-width: 100%; max-height: 72vh; object-fit: contain; align-self: center; }
+.lightbox figcaption { font-size: .9rem; max-width: 70ch; }
+.lightbox .close { position: absolute; top: 8px; right: 8px; border: 0; border-radius: 6px; padding: 6px 12px; background: var(--accent); color: var(--accent-ink); font: inherit; cursor: pointer; }
+.map-status code { background: var(--bg); padding: 1px 4px; border-radius: 4px; }
