@@ -2,34 +2,8 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="0; url=index.html#/sources">
   <title>Источники — Турген</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%239a4f22'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white' font-family='sans-serif'%3EТ%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-  <header class="topbar">
-    <div class="brand"><h1 data-i18n="sources.title">Источники</h1></div>
-    <nav class="topnav"><a href="index.html" data-i18n="sources.back">← К карте</a></nav>
-  </header>
-  <main style="padding:16px;max-width:800px">
-    <ul id="list"></ul>
-    <p id="empty" class="empty" data-i18n="sources.empty" hidden>Список источников пока пуст.</p>
-  </main>
-  <script type="module">
-    import { loadDicts, t } from "./js/i18n.js";
-    await loadDicts();
-    document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = t(n.dataset.i18n); });
-    const { sources } = await (await fetch("data/sources.json")).json();
-    const list = document.getElementById("list");
-    document.getElementById("empty").hidden = sources.length > 0;
-    for (const s of sources) {
-      const li = document.createElement("li");
-      if (s.url) { const a = document.createElement("a"); a.href = s.url; a.textContent = s.title; li.append(a); }
-      else li.textContent = s.title;
-      if (s.note) li.append(" — " + s.note);
-      list.append(li);
-    }
-  </script>
-</body>
+<body><p><a href="index.html#/sources">Источники</a></p></body>
 </html>

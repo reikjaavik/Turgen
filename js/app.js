@@ -1,219 +1,120 @@
 import { loadDicts, t, pick, setLang, getLang } from './i18n.js';
-import { loadBase, renderObjects, isVisible, unproject } from './map.js';
+import { db, loadAll } from './store.js';
+import { esc, text, sources } from './ui.js';
+import * as V from './views.js';
 
 const $ = (sel) => document.querySelector(sel);
-const state = { decade: 1900, decades: [], about: [], objects: [], sources: new Map(), baseLoaded: false };
+const view = $('#view');
+const lightbox = $('#lightbox');
+let current = null; // результат последнего рендера (нужен для стрелок на карте)
 
-const el = {
-  timeline: $('#timeline'),
-  title: $('#decade-title'),
-  body: $('#panel-body'),
-  notice: $('#lang-notice'),
-  mapBase: $('#map-base'),
-  mapObjects: $('#map-objects'),
-  mapStatus: $('#map-status'),
-  lightbox: $('#lightbox'),
-};
-
-async function json(path) {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`${path}: ${res.status}`);
-  return res.json();
+// Маршруты: #/, #/map/1940, #/people, #/people/<id>, #/history/1940, #/events, #/events/<id>,
+// #/places/<id>, #/photos, #/sources, #/tour, #/tour/<тема>/<шаг>. Старые ссылки #1940 → #/map/1940.
+function parse() {
+  let h = location.hash.slice(1);
+  if (/^\d{4}$/.test(h)) { history.replaceState(null, '', `#/map/${h}`); h = `/map/${h}`; }
+  const [path, qs = ''] = h.split('?');
+  return { parts: path.split('/').filter(Boolean), query: new URLSearchParams(qs) };
 }
 
-function esc(s) {
-  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function resolve({ parts: [section, a, b], query }) {
+  switch (section) {
+    case undefined: return V.home();
+    case 'map': return V.mapView(a);
+    case 'places': return a ? V.placeView(a) : V.mapView();
+    case 'people': return a ? V.personView(a) : V.peopleView(query);
+    case 'history': return V.historyView(a);
+    case 'events': return a ? V.eventView(a) : V.eventsView(query);
+    case 'photos': return V.photosView(query);
+    case 'sources': return V.sourcesView();
+    case 'tour': return V.tourView(a, b);
+    default: return V.notFound();
+  }
 }
 
-// Источники: [{ id, ref }] → «[презентация проекта, слайд 9]»
-function sourcesHtml(list = []) {
-  const parts = list.map(({ id, ref }) => {
-    const s = state.sources.get(id);
-    const name = s?.short ?? id;
-    return esc(ref ? `${name}, ${ref}` : name);
+async function render() {
+  const route = parse();
+  current = resolve(route);
+  document.body.dataset.layout = current.layout ?? 'page';
+  view.innerHTML = current.html;
+  document.title = current.title ? `${current.title} — ${t('site.title')}` : `${t('site.title')} — ${t('site.tagline')}`;
+  const section = route.parts[0] === 'places' ? 'map' : route.parts[0] ?? '';
+  document.querySelectorAll('#nav a').forEach((a) => {
+    if (a.dataset.section === section) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
   });
-  return parts.length ? `<span class="src">[${parts.join('; ')}]</span>` : '';
-}
-
-function textHtml(field) {
-  const { text, fallback } = pick(field);
-  return esc(text) + (fallback ? ` <span class="fallback-mark">(${esc(t('i18n.missing'))})</span>` : '');
-}
-
-function photosHtml(photos = []) {
-  if (!photos.length) return '';
-  return `<div class="photos">${photos.map((p) => {
-    const cap = pick(p.caption).text;
-    return `<figure><button type="button" class="thumb" data-photo="${esc(p.id)}" aria-label="${esc(cap)}"><img loading="lazy" decoding="async" src="assets/photos/thumb/${esc(p.id)}.jpg" alt="${esc(cap)}"></button></figure>`;
-  }).join('')}</div>`;
-}
-
-function section(titleKey, items, renderItem, cls = '') {
-  const inner = items.length
-    ? `<ul class="${cls}">${items.map((i) => `<li>${renderItem(i)}</li>`).join('')}</ul>`
-    : `<p class="empty">${esc(t('panel.empty'))}</p>`;
-  return `<section class="section"><h3>${esc(t(titleKey))}</h3>${inner}</section>`;
-}
-
-// Событие показывается в десятилетии, если его год или период [from, to] попадает в [decade, decade+9].
-function inDecade(e, start, end) {
-  const from = e.from ?? e.year;
-  const to = e.to ?? e.year;
-  return from == null || (from <= end && to >= start);
-}
-
-const decadeEnd = (d) => d.end ?? d.decade + 9;
-const decadeLabel = (d) => (d.label ? pick(d.label).text : `${d.decade}${t('decade.suffix')}`);
-
-const itemText = (e) =>
-  `${e.year ? `<strong>${e.year}:</strong> ` : ''}${textHtml(e.text)} ${sourcesHtml(e.sources)}${photosHtml(e.photos)}`;
-
-const personHtml = (p) =>
-  `<strong>${textHtml(p.name)}</strong>${p.life ? ` <span class="life">${esc(p.life)}</span>` : ''}` +
-  (p.text ? `<br>${textHtml(p.text)}` : '') + ` ${sourcesHtml(p.sources)}${photosHtml(p.photos)}`;
-
-function renderPanel() {
-  const d = state.decades.find((x) => x.decade === state.decade);
-  el.title.textContent = d ? decadeLabel(d) : '';
-  const end = d ? decadeEnd(d) : state.decade + 9;
-  const objs = state.objects.filter((o) => isVisible(o, state.decade, end));
-  const about = state.about.length
-    ? `<details class="about"><summary>${esc(t('panel.about'))}</summary><ul>${state.about.map((a) => `<li>${itemText(a)}</li>`).join('')}</ul></details>`
-    : '';
-  el.body.innerHTML = [
-    section('panel.population', (d?.population ?? []), itemText),
-    section('panel.events', (d?.events ?? []).filter((e) => inDecade(e, state.decade, end)), itemText),
-    section('panel.objects', objs, (o) => `<strong>${textHtml(o.name)}</strong> ${o.text ? textHtml(o.text) : ''} ${sourcesHtml(o.sources)}${photosHtml(o.photos)}`),
-    section('panel.people', d?.people ?? [], personHtml, 'people'),
-    about,
-  ].join('');
-}
-
-function renderMap() {
-  const d = state.decades.find((x) => x.decade === state.decade);
-  const drawn = renderObjects(el.mapObjects, state.objects, state.decade, d ? decadeEnd(d) : state.decade + 9, () => {});
-  if (!editMode) el.mapStatus.textContent = state.baseLoaded && drawn === 0 ? t('map.no_objects') : '';
-}
-
-function renderTimeline() {
-  el.timeline.innerHTML = state.decades.map((d) =>
-    `<li><button type="button" data-decade="${d.decade}"${d.decade === state.decade ? ' aria-current="true"' : ''}>${esc(decadeLabel(d))}</button></li>`
-  ).join('');
+  if (!current.keepScroll) window.scrollTo(0, 0);
+  await current.mount?.(view);
 }
 
 function renderStatic() {
   document.querySelectorAll('[data-i18n]').forEach((n) => { n.textContent = t(n.dataset.i18n); });
-  document.querySelectorAll('.lang button').forEach((b) =>
-    b.setAttribute('aria-pressed', String(b.dataset.lang === getLang())));
-  document.title = `${t('site.title')} — ${t('site.tagline')}`;
-  el.notice.hidden = getLang() !== 'kz';
-  el.notice.textContent = getLang() === 'kz' ? t('i18n.notice') : '';
+  document.querySelectorAll('.lang button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === getLang())));
+  const notice = $('#lang-notice');
+  notice.hidden = getLang() !== 'kz';
+  notice.textContent = getLang() === 'kz' ? t('i18n.notice') : '';
 }
 
-function render() {
-  renderStatic();
-  renderTimeline();
-  renderPanel();
-  renderMap();
-}
-
-function selectDecade(decade, { push = true } = {}) {
-  if (!state.decades.some((d) => d.decade === decade)) return;
-  state.decade = decade;
-  if (push) history.replaceState(null, '', `#${decade}`);
-  render();
-}
-
-function decadeFromHash() {
-  const n = parseInt(location.hash.slice(1), 10);
-  return state.decades.some((d) => d.decade === n) ? n : state.decades[0].decade;
-}
-
-function step(delta) {
-  const i = state.decades.findIndex((d) => d.decade === state.decade) + delta;
-  if (i >= 0 && i < state.decades.length) selectDecade(state.decades[i].decade);
-}
-
-// Фото → увеличенный просмотр с подписью и источником.
-function findPhoto(id) {
-  const scan = (list) => list.flatMap((x) => x.photos ?? []).find((p) => p.id === id);
-  return scan(state.about) ?? scan(state.objects)
-    ?? state.decades.map((d) => scan([...d.events, ...d.people])).find(Boolean);
-}
 function openPhoto(id) {
-  const p = findPhoto(id);
-  if (!p || !el.lightbox) return;
-  el.lightbox.querySelector('img').src = `assets/photos/${id}.jpg`;
-  el.lightbox.querySelector('img').alt = pick(p.caption).text;
-  el.lightbox.querySelector('figcaption').innerHTML = `${textHtml(p.caption)} ${sourcesHtml(p.sources)}`;
-  el.lightbox.showModal();
+  const rec = db.photoById.get(id);
+  if (!rec) return;
+  const { photo, owner } = rec;
+  lightbox.querySelector('img').src = `assets/photos/${id}.jpg`;
+  lightbox.querySelector('img').alt = pick(photo.caption).text;
+  lightbox.querySelector('figcaption').innerHTML =
+    `${text(photo.caption)} ${sources(photo.sources)}<br>${esc(t('photo.related'))} ${V.ownerLink(owner)}`;
+  lightbox.showModal();
 }
 
-// Режим разметки (?edit): клик по карте показывает lat/lon для добавления объекта в data/objects.json.
-const editMode = new URLSearchParams(location.search).has('edit');
-function setupEditMode() {
-  if (!editMode) return;
-  const svg = $('#map');
-  svg.style.cursor = 'crosshair';
-  svg.addEventListener('click', (e) => {
-    const pt = svg.createSVGPoint();
-    pt.x = e.clientX; pt.y = e.clientY;
-    const { x, y } = pt.matrixTransform(svg.getScreenCTM().inverse());
-    const ll = unproject(x, y);
-    if (!ll) return;
-    const txt = `"lat": ${ll.lat.toFixed(6)}, "lon": ${ll.lon.toFixed(6)}`;
-    el.mapStatus.innerHTML = `${esc(t('map.pick'))} <code>${txt}</code> <button type="button" id="copy-ll">${esc(t('map.copy'))}</button>`;
-    $('#copy-ll').onclick = () => navigator.clipboard?.writeText(txt);
-  });
+// Карта: стрелки ←/→ и свайп листают десятилетия.
+function stepDecade(delta) {
+  if (current?.layout !== 'map') return;
+  const i = db.decades.findIndex((d) => d.decade === current.decade) + delta;
+  if (i >= 0 && i < db.decades.length) location.hash = `#/map/${db.decades[i].decade}`;
 }
 
 async function init() {
   await loadDicts();
-  const [dec, obj, src] = await Promise.all([
-    json('data/decades.json'), json('data/objects.json'), json('data/sources.json'),
-  ]);
-  state.decades = dec.decades;
-  state.about = dec.about ?? [];
-  state.objects = obj.objects;
-  state.sources = new Map(src.sources.map((s) => [s.id, s]));
-  state.decade = decadeFromHash();
+  await loadAll();
+  renderStatic();
+  await render();
 
-  state.baseLoaded = await loadBase(el.mapBase, t);
-  render();
-  setupEditMode();
-
-  el.timeline.addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-decade]');
-    if (b) selectDecade(+b.dataset.decade);
-  });
-  el.body.addEventListener('click', (e) => {
+  window.addEventListener('hashchange', render);
+  document.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-photo]');
     if (b) openPhoto(b.dataset.photo);
   });
-  el.lightbox?.addEventListener('click', (e) => { if (e.target === el.lightbox || e.target.closest('.close')) el.lightbox.close(); });
+  view.addEventListener('submit', (e) => {
+    const form = e.target.closest('[data-search]');
+    if (!form) return;
+    e.preventDefault();
+    const q = new URLSearchParams(new FormData(form));
+    for (const [k, v] of [...q]) if (!v) q.delete(k);
+    location.hash = `#/people${q.toString() ? `?${q}` : ''}`;
+  });
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox || e.target.closest('.close') || e.target.closest('figcaption a')) lightbox.close();
+  });
   document.querySelector('.lang').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-lang]');
-    if (b) { setLang(b.dataset.lang); render(); }
+    if (b) { setLang(b.dataset.lang); renderStatic(); render(); }
   });
   document.addEventListener('keydown', (e) => {
-    if (el.lightbox?.open) return;
-    if (e.key === 'ArrowLeft') step(-1);
-    if (e.key === 'ArrowRight') step(1);
+    if (lightbox.open || e.target.closest('input, textarea')) return;
+    if (e.key === 'ArrowLeft') stepDecade(-1);
+    if (e.key === 'ArrowRight') stepDecade(1);
   });
-  window.addEventListener('hashchange', () => selectDecade(decadeFromHash(), { push: false }));
-
   let x0 = null;
-  const mapWrap = document.querySelector('.map-wrap');
-  mapWrap.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
-  mapWrap.addEventListener('touchend', (e) => {
+  view.addEventListener('touchstart', (e) => { x0 = e.target.closest('.map-wrap') ? e.touches[0].clientX : null; }, { passive: true });
+  view.addEventListener('touchend', (e) => {
     if (x0 == null) return;
     const dx = e.changedTouches[0].clientX - x0;
-    if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
+    if (Math.abs(dx) > 50) stepDecade(dx < 0 ? 1 : -1);
     x0 = null;
   });
 }
 
 init().catch((err) => {
   console.error(err);
-  el.body.innerHTML = `<p class="empty">Не удалось загрузить данные. Откройте сайт через веб-сервер (не file://).</p>`;
+  view.innerHTML = '<p class="empty page">Не удалось загрузить данные. Откройте сайт через веб-сервер (не file://).</p>';
 });

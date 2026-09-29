@@ -1,5 +1,47 @@
 {
- "objects": [
+ "places": [
+  {
+   "id": "aul",
+   "type": "village",
+   "name": {
+    "ru": "Аул Турген (Тургеневка)"
+   },
+   "lat": 50.7601195,
+   "lon": 72.3233854,
+   "from": 1903,
+   "text": {
+    "ru": "Центр населённого пункта по OpenStreetMap. Расположение по презентации: правый берег реки Ишим, 18 км к юго-востоку от Аршалы, 88 км к юго-востоку от Астаны."
+   },
+   "sources": [
+    {
+     "id": "osm",
+     "ref": "узел «Турген»"
+    },
+    {
+     "id": "deck",
+     "ref": "слайд 6"
+    }
+   ],
+   "photos": [
+    {
+     "id": "aul-vid",
+     "caption": {
+      "ru": "Вид на аул (фото со слайда 5; подписи и даты нет)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 5"
+      }
+     ]
+    }
+   ],
+   "events": [
+    "do-1903",
+    "osnovanie",
+    "sovremenny"
+   ]
+  },
   {
    "id": "monument-vov",
    "type": "memorial",
@@ -77,6 +119,10 @@
       }
      ]
     }
+   ],
+   "events": [
+    "pamyatnik",
+    "vov"
    ]
   },
   {
@@ -105,6 +151,10 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny",
+    "klub"
    ]
   },
   {
@@ -133,6 +183,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -161,6 +214,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -189,6 +245,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -217,6 +276,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -245,6 +307,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -273,6 +338,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -349,6 +417,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -377,6 +448,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -429,6 +503,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -457,6 +534,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -485,6 +565,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -513,6 +596,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -541,6 +627,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -569,6 +658,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   },
   {
@@ -597,6 +689,9 @@
       }
      ]
     }
+   ],
+   "events": [
+    "sovremenny"
    ]
   }
  ]

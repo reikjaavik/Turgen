@@ -1,53 +1,49 @@
-// Stylised SVG map. Base geometry comes from assets/map/base.svg (built from OpenStreetMap,
-// see scripts/build-base-map.mjs). Until it exists, a labelled placeholder is shown.
+// Стилизованная SVG-схема. Основа — assets/map/base.svg (построена из OpenStreetMap,
+// см. scripts/build-base-map.mjs). Объекты ставятся только по реальным координатам.
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-let projection = null; // set once base map metadata is known: { minLat, maxLat, minLon, maxLon, width, height }
+let baseMarkup = null; // кэш содержимого base.svg
+let projection = null; // { minLat, maxLat, minLon, maxLon, width, height }
 
-export async function loadBase(baseEl, t) {
+export async function loadBase() {
+  if (baseMarkup !== null) return baseMarkup;
   try {
     const res = await fetch('assets/map/base.svg');
     if (!res.ok) throw new Error(res.status);
-    const doc = new DOMParser().parseFromString(await res.text(), 'image/svg+xml');
-    const root = doc.documentElement;
-    const meta = root.dataset;
-    if (meta.minLat) {
-      projection = {
-        minLat: +meta.minLat, maxLat: +meta.maxLat,
-        minLon: +meta.minLon, maxLon: +meta.maxLon,
-        width: 800, height: 560,
-      };
+    const root = new DOMParser().parseFromString(await res.text(), 'image/svg+xml').documentElement;
+    const m = root.dataset;
+    if (m.minLat) {
+      projection = { minLat: +m.minLat, maxLat: +m.maxLat, minLon: +m.minLon, maxLon: +m.maxLon, width: 800, height: 560 };
     }
-    baseEl.replaceChildren(...[...root.childNodes].map((n) => document.importNode(n, true)));
-    return true;
+    baseMarkup = root.innerHTML;
   } catch {
-    baseEl.innerHTML = `
-      <g class="map-placeholder">
-        <rect x="20" y="20" width="760" height="520" rx="12"></rect>
-        <foreignObject x="60" y="200" width="680" height="160">
-          <p xmlns="http://www.w3.org/1999/xhtml" class="map-placeholder-text">${t('map.pending')}</p>
-        </foreignObject>
-      </g>`;
-    return false;
+    baseMarkup = '';
   }
+  return baseMarkup;
 }
 
-// Objects are placed by real coordinates only. No lat/lon or no projection → not drawn.
-export function renderObjects(objectsEl, objects, start, end, onSelect) {
+export function renderObjects(objectsEl, places, isVisible, onSelect, label) {
   objectsEl.replaceChildren();
   if (!projection) return 0;
   let drawn = 0;
-  for (const o of objects) {
+  for (const o of places) {
     if (o.lat == null || o.lon == null) continue;
     const { x, y } = project(o.lat, o.lon);
     const g = document.createElementNS(SVG_NS, 'g');
-    g.setAttribute('class', 'map-object');
-    g.setAttribute('transform', `translate(${x} ${y})`);
-    g.dataset.visible = String(isVisible(o, start, end));
+    g.setAttribute('class', `map-object type-${o.type ?? 'other'}`);
+    g.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
     g.setAttribute('tabindex', '0');
+    g.setAttribute('role', 'link');
+    g.dataset.visible = String(isVisible(o));
+    const title = document.createElementNS(SVG_NS, 'title');
+    title.textContent = label(o);
     const c = document.createElementNS(SVG_NS, 'circle');
-    c.setAttribute('r', '8');
-    g.append(c);
+    c.setAttribute('r', '9');
+    const t = document.createElementNS(SVG_NS, 'text');
+    t.setAttribute('x', '14');
+    t.setAttribute('y', '5');
+    t.textContent = label(o);
+    g.append(title, c, t);
     g.addEventListener('click', () => onSelect(o));
     g.addEventListener('keydown', (e) => { if (e.key === 'Enter') onSelect(o); });
     objectsEl.append(g);
@@ -56,16 +52,7 @@ export function renderObjects(objectsEl, objects, start, end, onSelect) {
   return drawn;
 }
 
-// Объект есть в периоде [start, end], если его [from, to] пересекается с периодом. Неизвестные границы открыты.
-// present: true — объект «сегодняшний» (дата основания неизвестна): виден только в периоде «Сегодня» (с 2000 года).
-export function isVisible(o, start, end) {
-  if (o.present) return end >= 2000;
-  const from = o.from ?? -Infinity;
-  const to = o.to ?? Infinity;
-  return from <= end && to >= start;
-}
-
-// Обратная проекция: точка SVG → широта/долгота (для режима разметки).
+// Обратная проекция: точка SVG → широта/долгота (для режима разметки ?edit).
 export function unproject(x, y) {
   const p = projection;
   if (!p) return null;
