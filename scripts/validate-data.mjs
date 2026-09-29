@@ -104,6 +104,7 @@ for (const pl of places) {
   const w = `place ${pl.id}`;
   if (!hasText(pl.name)) err(`${w}: нет названия`);
   if ((pl.lat == null) !== (pl.lon == null)) err(`${w}: заданы не обе координаты`);
+  if (pl.approx && (pl.lat == null || !(pl.approx.radius > 0))) err(`${w}: approx требует lat/lon и radius > 0`);
   if (!pl.events?.length && !pl.present && pl.from == null) err(`${w}: не связано ни с событием, ни со временем`);
   checkTime(w, pl);
   checkRefs(w, pl.events, eventIds, 'события');

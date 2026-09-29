@@ -13,7 +13,7 @@ export async function loadBase() {
     const root = new DOMParser().parseFromString(await res.text(), 'image/svg+xml').documentElement;
     const m = root.dataset;
     if (m.minLat) {
-      projection = { minLat: +m.minLat, maxLat: +m.maxLat, minLon: +m.minLon, maxLon: +m.maxLon, width: 800, height: 560 };
+      projection = { minLat: +m.minLat, maxLat: +m.maxLat, minLon: +m.minLon, maxLon: +m.maxLon, width: 800, height: 560, mPerPx: +m.scaleM || null };
     }
     baseMarkup = root.innerHTML;
   } catch {
@@ -26,7 +26,9 @@ export function renderObjects(objectsEl, places, isVisible, onSelect, label) {
   objectsEl.replaceChildren();
   if (!projection) return 0;
   let drawn = 0;
-  for (const o of places) {
+  // Примерные зоны — первыми, чтобы точки лежали поверх и оставались кликабельными.
+  const ordered = [...places].sort((a, b) => Boolean(b.approx) - Boolean(a.approx));
+  for (const o of ordered) {
     if (o.lat == null || o.lon == null) continue;
     const { x, y } = project(o.lat, o.lon);
     const g = document.createElementNS(SVG_NS, 'g');
@@ -37,12 +39,22 @@ export function renderObjects(objectsEl, places, isVisible, onSelect, label) {
     g.dataset.visible = String(isVisible(o));
     const title = document.createElementNS(SVG_NS, 'title');
     title.textContent = label(o);
+    // approx: { radius } — место известно только примерно: рисуем зону радиусом radius метров, а не точку.
+    const r = o.approx && projection.mPerPx ? o.approx.radius / projection.mPerPx : 9;
+    if (o.approx) g.classList.add('approx');
     const c = document.createElementNS(SVG_NS, 'circle');
-    c.setAttribute('r', '9');
+    c.setAttribute('r', r.toFixed(1));
     const t = document.createElementNS(SVG_NS, 'text');
-    t.setAttribute('x', '14');
-    t.setAttribute('y', '5');
-    t.textContent = label(o);
+    if (o.approx) {
+      t.setAttribute('x', '0');
+      t.setAttribute('y', (r + 18).toFixed(1));
+      t.setAttribute('text-anchor', 'middle');
+      t.textContent = `≈ ${label(o)}`;
+    } else {
+      t.setAttribute('x', '14');
+      t.setAttribute('y', '5');
+      t.textContent = label(o);
+    }
     g.append(title, c, t);
     g.addEventListener('click', () => onSelect(o));
     g.addEventListener('keydown', (e) => { if (e.key === 'Enter') onSelect(o); });

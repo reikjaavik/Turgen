@@ -75,7 +75,7 @@ export function mapView(decadeParam) {
     <section class="section"><h3>${esc(t('panel.events'))}</h3>${evs.length
       ? `<ul class="plain">${evs.map((e) => `<li>${eventCard(e)}</li>`).join('')}</ul>` : empty()}</section>
     <section class="section"><h3>${esc(t('panel.places'))}</h3>${pls.length
-      ? `<ul>${pls.map((pl) => `<li><a href="${link.place(pl.id)}">${text(pl.name)}</a>${pl.lat == null ? ` <span class="muted">(${esc(t('map.noCoords'))})</span>` : ''}</li>`).join('')}</ul>` : empty()}</section>
+      ? `<ul>${pls.map((pl) => `<li><a href="${link.place(pl.id)}">${text(pl.name)}</a>${pl.lat == null ? ` <span class="muted">(${esc(t('map.noCoords'))})</span>` : pl.approx ? ` <span class="muted">(${esc(t('map.approx'))})</span>` : ''}</li>`).join('')}</ul>` : empty()}</section>
     <section class="section"><h3>${esc(t('panel.people'))}</h3>${ppl.length
       ? `<p>${esc(t('panel.peopleCount'))} ${ppl.length}. <a href="#/history/${decade}">${esc(t('panel.peopleLink'))} →</a></p>` : empty()}</section>`;
 
@@ -96,7 +96,7 @@ export function mapView(decadeParam) {
     svg.querySelector('#map-base').innerHTML = await loadBase();
     const status = root.querySelector('#map-status');
     const drawn = renderObjects(svg.querySelector('#map-objects'), db.places, (pl) => placeInDecade(pl, decade),
-      (pl) => { location.hash = link.place(pl.id); }, (pl) => plain(pl.name));
+      (pl) => { location.hash = link.place(pl.id); }, (pl) => plain(pl.short ?? pl.name));
     const shown = db.places.filter((pl) => pl.lat != null && placeInDecade(pl, decade)).length;
     if (!edit) status.textContent = drawn && shown ? '' : t('map.no_objects');
     if (edit) {
@@ -127,7 +127,7 @@ export function placeView(id) {
     <p class="crumbs"><a href="#/map">${esc(t('nav.map'))}</a></p>
     <h1>${text(pl.name)}</h1>
     ${pl.text ? `<p class="lead-sm">${text(pl.text)}</p>` : ''}
-    ${pl.lat == null ? `<p class="muted">${esc(t('place.noCoords'))}</p>` : ''}
+    ${pl.lat == null ? `<p class="muted">${esc(t('place.noCoords'))}</p>` : pl.approx ? `<p class="muted">${esc(t('place.approx'))} <a href="#/map/2000">${esc(t('place.onMap'))}</a></p>` : `<p><a href="#/map/2000">${esc(t('place.onMap'))}</a></p>`}
     ${thumbs(pl.photos, 'large')}
     ${relations({ decades: decs, events: evs, src: pl.sources })}
     ${ppl.length ? `<h2>${esc(t('place.people'))} <span class="n">${ppl.length}</span></h2><p class="muted">${esc(t('place.peopleNote'))}</p><div class="people-grid">${ppl.map(personCard).join('')}</div>` : ''}`);
