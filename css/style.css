@@ -7,6 +7,12 @@
   --accent: #9a4f22;
   --accent-ink: #fff;
   --river: #9cc3d5;
+  --land: #efe8d6;
+  --farm: #e9e2c8;
+  --built: #d9c9a8;
+  --building: #a48b68;
+  --road-major: #b6a98d;
+  --road: #cbbfa4;
   --focus: #1f5fbf;
 }
 @media (prefers-color-scheme: dark) {
@@ -19,6 +25,12 @@
     --accent: #e0925e;
     --accent-ink: #1d1c19;
     --river: #3f6b80;
+    --land: #2d2b25;
+    --farm: #302e26;
+    --built: #4a4436;
+    --building: #8c7a5a;
+    --road-major: #6c644f;
+    --road: #55503f;
     --focus: #7fb0ff;
   }
 }
@@ -85,11 +97,25 @@ a { color: var(--accent); }
   position: absolute; left: 12px; bottom: 8px; margin: 0;
   font-size: .85rem; color: var(--muted);
 }
+.map-credit { position: absolute; right: 10px; bottom: 6px; margin: 0; font-size: .75rem; color: var(--muted); }
+.map-credit a { color: inherit; }
 .map-placeholder-text {
   margin: 0; height: 100%; display: flex; align-items: center; justify-content: center;
   text-align: center; color: var(--muted); font: 1.1rem/1.4 system-ui, sans-serif;
 }
 .map-placeholder rect { fill: none; stroke: var(--line); stroke-dasharray: 6 6; }
+
+#map-base { }
+.base-farmland path { fill: var(--farm); stroke: none; }
+.base-residential path { fill: var(--built); stroke: none; opacity: .55; }
+.base-river path { fill: none; stroke: var(--river); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.base-roads path { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke: var(--road); }
+.base-roads .road-major { stroke: var(--road-major); stroke-width: 5; }
+.base-roads .road-mid { stroke-width: 3.5; }
+.base-roads .road-street { stroke-width: 2.5; }
+.base-roads .road-minor { stroke-width: 1.5; }
+.base-buildings path { fill: var(--building); stroke: none; }
+.map-wrap { background: var(--land); }
 
 .map-object { transition: opacity .4s ease; cursor: pointer; }
 .map-object[data-visible="false"] { opacity: 0; pointer-events: none; }
