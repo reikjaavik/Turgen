@@ -1,4 +1,4 @@
-// Строит assets/map/base.svg из выгрузки OpenStreetMap (data/raw/turgen.osm) и контуров зданий
+// Строит assets/map/base.svg (2D) и assets/map/base.geojson (3D) из выгрузки OpenStreetMap (data/raw/turgen.osm) и контуров зданий
 // Overture Maps (data/raw/overture-buildings.geojson: Microsoft ML Buildings + OSM, лицензия ODbL).
 // Запуск: node scripts/build-base-map.mjs [центр_lat центр_lon ширина_м]
 // Выгрузка: curl "https://api.openstreetmap.org/api/0.6/map?bbox=W,S,E,N" -o data/raw/turgen.osm
@@ -33,15 +33,29 @@ const inView = (pts) => pts.some(([la, lo]) => la >= view.minLat && la <= view.m
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
 const layers = { farmland: [], residential: [], river: [], roads: [], buildings: [] };
+// Те же слои в GeoJSON для 3D-вида: [lon, lat], округление до 6 знаков.
+const features = [];
+const ll = (pts) => pts.map(([la, lo]) => [+lo.toFixed(6), +la.toFixed(6)]);
+const feat = (kind, geometry, props = {}) => features.push({ type: 'Feature', properties: { kind, ...props }, geometry });
 const ROAD = { motorway: 'major', trunk: 'major', primary: 'major', secondary: 'major', tertiary: 'mid', unclassified: 'mid', residential: 'street', service: 'minor' };
 for (const w of ways) {
   if (w.pts.length < 2 || !inView(w.pts)) continue;
   const t = w.tags;
-  if (t.landuse === 'farmland') layers.farmland.push(`<path d="${d(w.pts, true)}"/>`);
-  else if (t.landuse === 'residential') layers.residential.push(`<path d="${d(w.pts, true)}"/>`);
-  else if (t.waterway) layers.river.push(`<path d="${d(w.pts)}"/>`);
-  else if (t.highway && ROAD[t.highway]) layers.roads.push(`<path class="road-${ROAD[t.highway]}" d="${d(w.pts)}"${t.name ? ` data-name="${esc(t.name)}"` : ''}/>`);
+  if (t.landuse === 'farmland') { layers.farmland.push(`<path d="${d(w.pts, true)}"/>`); feat('farmland', { type: 'Polygon', coordinates: [ll(w.pts)] }); }
+  else if (t.landuse === 'residential') { layers.residential.push(`<path d="${d(w.pts, true)}"/>`); feat('residential', { type: 'Polygon', coordinates: [ll(w.pts)] }); }
+  else if (t.waterway) { layers.river.push(`<path d="${d(w.pts)}"/>`); feat('river', { type: 'LineString', coordinates: ll(w.pts) }); }
+  else if (t.highway && ROAD[t.highway]) { layers.roads.push(`<path class="road-${ROAD[t.highway]}" d="${d(w.pts)}"${t.name ? ` data-name="${esc(t.name)}"` : ''}/>`); feat('road', { type: 'LineString', coordinates: ll(w.pts) }, { road: ROAD[t.highway] }); }
   else if (t.building) layers.buildings.push(`<path d="${d(w.pts, true)}"/>`);
+}
+
+// Условная высота для 3D: реальных высот в данных нет, поэтому по площади — дом ≈ 1 этаж, крупные постройки выше.
+function conventionalHeight(pts) {
+  let a = 0;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    a += (pts[j][1] * mPerDegLon) * (pts[i][0] * M_PER_DEG_LAT) - (pts[i][1] * mPerDegLon) * (pts[j][0] * M_PER_DEG_LAT);
+  }
+  const area = Math.abs(a / 2);
+  return area < 150 ? 4 : area < 600 ? 6 : 8;
 }
 
 // Здания: если есть выгрузка Overture — берём её (в ней уже есть и здания из OSM), иначе — здания OSM.
@@ -53,7 +67,9 @@ if (existsSync(OVERTURE)) {
     const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
     for (const rings of polys) {
       const pts = rings[0].map(([lon, lat]) => [lat, lon]);
-      if (inView(pts)) layers.buildings.push(`<path d="${d(pts, true)}"/>`);
+      if (!inView(pts)) continue;
+      layers.buildings.push(`<path d="${d(pts, true)}"/>`);
+      feat('building', { type: 'Polygon', coordinates: [ll(pts)] }, { h: conventionalHeight(pts) });
     }
   }
 }
@@ -67,4 +83,10 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" dat
 </svg>
 `;
 writeFileSync(new URL('../assets/map/base.svg', import.meta.url), svg);
+writeFileSync(new URL('../assets/map/base.geojson', import.meta.url), JSON.stringify({
+  type: 'FeatureCollection',
+  bounds: [view.minLon, view.minLat, view.maxLon, view.maxLat],
+  attribution: '© OpenStreetMap contributors; Microsoft ML Buildings; Overture Maps Foundation (ODbL)',
+  features,
+}));
 console.log(`base.svg: ${Object.entries(layers).map(([k, v]) => `${k}=${v.length}`).join(' ')}; ширина ${widthM} м, масштаб ${(widthM / W).toFixed(2)} м/px`);

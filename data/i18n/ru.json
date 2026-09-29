@@ -104,5 +104,6 @@
   "legend.social": "Социальные объекты",
   "legend.economy": "Хозяйство и производство",
   "legend.memory": "Память",
-  "legend.village": "Центр аула"
+  "legend.village": "Центр аула",
+  "map.heights": "высоты зданий условные"
 }

@@ -3,7 +3,11 @@ import { db, loadAll, placeInDecade, decadeOf } from './store.js';
 import { esc, text, plain, sources, decadeLabel, link } from './ui.js';
 import * as V from './views.js';
 import * as Mark from './mark.js';
-import { initStage, setFocus, setDrafts, setMapClick, zoomBy, resetZoom } from './map.js';
+import * as Map2d from './map.js';
+import * as Map3d from './map3d.js';
+
+// Сцена: 3D (MapLibre, нужен WebGL) или запасная 2D-схема (SVG).
+const Stage = Map3d.supported() ? Map3d : Map2d;
 
 const $ = (sel) => document.querySelector(sel);
 const view = $('#view');
@@ -40,9 +44,10 @@ function applyFocus() {
   const f = typeof state.current?.focus === 'function' ? state.current.focus(state.decade) : state.current?.focus;
   if (f?.decade != null && decadeOf(f.decade)) state.decade = f.decade;
   const decade = state.decade;
-  setFocus({
+  Stage.setFocus({
     places: db.places,
     isVisible: (pl) => placeInDecade(pl, decade),
+    today: decade >= 2000,
     highlight: f?.highlight ?? [],
     pulse: f?.pulse ?? null,
   });
@@ -63,8 +68,8 @@ function applyFocus() {
   $('#legend').hidden = !db.places.some((pl) => pl.lat != null && pl.type !== 'village' && placeInDecade(pl, decade));
 
   const marking = !!state.current?.marking;
-  setDrafts(marking ? Mark.getMarks() : {});
-  setMapClick(marking ? (ll) => { if (Mark.place(ll)) render(); } : null);
+  Stage.setDrafts(marking ? Mark.getMarks() : {});
+  Stage.setMapClick(marking ? (ll) => { if (Mark.place(ll)) render(); } : null);
   const hint = $('#stage-hint');
   hint.hidden = !marking;
   if (marking) {
@@ -137,7 +142,9 @@ async function init() {
   renderStatic();
   renderTimeline();
   setDrawer(defaultDrawer());
-  await initStage($('#map'), {
+  const use3d = Stage === Map3d;
+  document.body.dataset.stage = use3d ? '3d' : '2d';
+  await Stage.initStage(use3d ? $('#map3d') : $('#map'), {
     onSelect: (pl) => { location.hash = link.place(pl.id); },
     label: (pl) => plain(pl.short ?? pl.name),
     placeById: (id) => db.byId.place.get(id),
@@ -150,7 +157,10 @@ async function init() {
     const b = e.target.closest('button[data-photo]');
     if (b) openPhoto(b.dataset.photo);
     const z = e.target.closest('[data-zoom]');
-    if (z) ({ in: () => zoomBy(1.5), out: () => zoomBy(1 / 1.5), reset: resetZoom })[z.dataset.zoom]();
+    if (z) {
+      if (z.dataset.zoom === 'view') z.textContent = Stage.toggle3d() ? '2D' : '3D';
+      else ({ in: () => Stage.zoomBy(1.5), out: () => Stage.zoomBy(1 / 1.5), reset: () => Stage.resetZoom() })[z.dataset.zoom]();
+    }
     const sel = e.target.closest('[data-mark-select]');
     if (sel) { Mark.select(sel.dataset.markSelect); render(); }
     const del = e.target.closest('[data-mark-remove]');
@@ -192,7 +202,7 @@ async function init() {
   const stage = $('#stage');
   stage.addEventListener('touchstart', (e) => { x0 = e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
   stage.addEventListener('touchend', (e) => {
-    if (x0 == null || state.current?.marking) return;
+    if (x0 == null || state.current?.marking || document.body.dataset.stage === '3d') return;
     const dx = e.changedTouches[0].clientX - x0;
     // Свайп листает десятилетия, только если схема не приближена (иначе это перетаскивание).
     if (Math.abs(dx) > 60 && $('#map').style.getPropertyValue('--k') <= 1) stepDecade(dx < 0 ? 1 : -1);

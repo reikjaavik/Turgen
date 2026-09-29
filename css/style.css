@@ -312,7 +312,11 @@ body[data-drawer="closed"] .drawer { display: none; }
 .map-object text { display: none; }
 .map-object.labeled text, .map-object:hover text, .map-object:focus text { display: inline; }
 /* Цвет по группе: социальные объекты, хозяйство, память, центр аула. */
-.map-object, .dot { --c: var(--t-postwar); }
+.map-object { --c: var(--t-postwar); }
+.legend .type-village { --c: var(--accent); }
+.legend .type-school { --c: var(--t-postwar); }
+.legend .type-farm { --c: var(--t-agro); }
+.legend .type-memorial { --c: var(--t-war); }
 .type-culture, .type-service, .type-health, .type-school, .type-shop, .type-office { --c: var(--t-postwar); }
 .type-farm, .type-industry, .type-building { --c: var(--t-agro); }
 .type-memorial { --c: var(--t-war); }
@@ -415,3 +419,32 @@ body[data-drawer="closed"] .drawer { display: none; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* ---------- 3D-сцена ---------- */
+.map3d { position: absolute; inset: 0; }
+body[data-stage="3d"] #map { display: none; }
+body[data-stage="2d"] .map3d, body[data-stage="2d"] .only-3d { display: none; }
+.stage-decade, .stage-tools, .unmarked, .legend, .stage-hint, .map-credit, .drawer-open { z-index: 2; }
+.maplibregl-canvas.marking { cursor: crosshair; }
+#map.past .base-buildings path { opacity: .3; }
+.m3d {
+  --c: var(--t-postwar);
+  display: flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer;
+  transition: opacity .4s ease;
+}
+.m3d .dot { width: 16px; height: 16px; border-radius: 50%; background: var(--c); border: 3px solid var(--surface); box-shadow: 0 1px 4px rgba(0,0,0,.35); flex: none; }
+.m3d .lbl {
+  display: none; font: 600 13px system-ui, sans-serif; color: var(--ink); white-space: nowrap;
+  background: color-mix(in srgb, var(--surface) 88%, transparent); padding: 1px 6px; border-radius: 4px;
+}
+.m3d.labeled .lbl, .m3d:hover .lbl, .m3d:focus-visible .lbl { display: inline; }
+.m3d.off { visibility: hidden; pointer-events: none; } /* opacity маркеру задаёт сам MapLibre */
+.m3d.dim .dot, .m3d.dim .lbl { opacity: .4; }
+.m3d.hl .dot { border-color: var(--ink); }
+.m3d.pulse .dot { animation: pulse3d 1.4s ease-in-out infinite; }
+@keyframes pulse3d { 50% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--c) 35%, transparent); } }
+.m3d.approx .dot { display: none; }
+.m3d.draft .dot { background: var(--surface); border: 3px dashed var(--focus); }
+.m3d.type-farm, .m3d.type-industry, .m3d.type-building { --c: var(--t-agro); }
+.m3d.type-memorial { --c: var(--t-war); }
+.m3d.type-village { --c: var(--accent); }

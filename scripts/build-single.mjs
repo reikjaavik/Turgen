@@ -12,6 +12,7 @@ const files = {};
 for (const f of readdirSync(new URL('data/', root))) if (f.endsWith('.json') && f !== 'photo-manifest.json') files[`data/${f}`] = read(`data/${f}`);
 for (const f of readdirSync(new URL('data/i18n/', root))) files[`data/i18n/${f}`] = read(`data/i18n/${f}`);
 files['assets/map/base.svg'] = read('assets/map/base.svg');
+files['assets/map/base.geojson'] = read('assets/map/base.geojson');
 
 // Фото → data URI.
 const photos = {};
@@ -48,6 +49,8 @@ const js = await build({ entryPoints: [new URL('js/app.js', root).pathname], bun
 const css = read('css/style.css');
 let html = read('index.html')
   .replace('<link rel="stylesheet" href="css/style.css">', `<style>${css}</style>`)
+  .replace('<link rel="stylesheet" href="vendor/maplibre-gl/maplibre-gl.css">', `<style>${read('vendor/maplibre-gl/maplibre-gl.css')}</style>`)
+  .replace('<script src="vendor/maplibre-gl/maplibre-gl.js"></script>', () => `<script>${read('vendor/maplibre-gl/maplibre-gl.js').replace(/<\/script/gi, '<\\/script')}</script>`)
   .replace('<script type="module" src="js/app.js"></script>',
     `<script>${prelude.replace(/<\/script/gi, '<\\/script')}</script>\n<script>${js.outputFiles[0].text.replace(/<\/script/gi, '<\\/script')}</script>`);
 

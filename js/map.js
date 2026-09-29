@@ -33,8 +33,10 @@ export async function initStage(svgEl, options) {
 // Экранный масштаб: насколько схема приближена (1 — вся схема).
 const zoomK = () => W / view.w;
 
-export function setFocus({ places, isVisible, highlight = [], pulse = null }) {
+export function setFocus({ places, isVisible, highlight = [], pulse = null, today = false }) {
   focus = { places, isVisible, highlight: new Set(highlight), pulse };
+  // Современная застройка в прошлых десятилетиях — бледной тенью для ориентира.
+  svg.classList.toggle('past', !today);
   drawObjects();
 }
 
