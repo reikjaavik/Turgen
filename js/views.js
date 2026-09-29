@@ -1,4 +1,5 @@
-// Страницы сайта. Каждая функция возвращает { title, html, mount? }.
+// Содержимое панели поверх карты. Каждая функция возвращает { title, html, mount?, focus? },
+// где focus — что показать на схеме: { decade, highlight: [id мест], pulse: id }.
 import { t } from './i18n.js';
 import {
   db, decadesOf, eventsInDecade, peopleInDecade, personDecades, placeInDecade, chronological, decadeOf, decadeEnd,
@@ -6,7 +7,6 @@ import {
 import {
   esc, text, plain, sources, thumbs, relations, personCard, eventCard, empty, link, decadeLabel, decadeName,
 } from './ui.js';
-import { loadBase, renderObjects, unproject } from './map.js';
 
 const themeOf = (id) => db.project.themes.find((x) => x.id === id);
 const peopleOf = (e) => db.eventPeople.get(e.id) ?? [];
@@ -58,18 +58,17 @@ export function home() {
   return { title: '', html };
 }
 
-// ---------- Места (карта по десятилетиям) ----------
-export function mapView(decadeParam) {
+// ---------- Места: сводка десятилетия ----------
+export function decadeView(decadeParam) {
   const decade = decadeOf(+decadeParam) ? +decadeParam : db.decades[0].decade;
   const d = decadeOf(decade);
   const evs = eventsInDecade(decade).filter((e) => !e.parent);
   const ppl = peopleInDecade(decade);
   const pls = db.places.filter((pl) => placeInDecade(pl, decade));
   const stats = d.population ?? [];
-  const edit = new URLSearchParams(location.search).has('edit');
-
-  const panel = `
-    <h2 class="decade-title">${esc(decadeLabel(d))}</h2>
+  const html = page(`
+    <p class="crumbs">🗺 ${esc(t('nav.map'))}</p>
+    <h1 class="decade-title">${esc(decadeLabel(d))}</h1>
     <section class="section"><h3>${esc(t('panel.population'))}</h3>${stats.length
       ? `<ul>${stats.map((s) => `<li>${s.year ? `<strong>${s.year}:</strong> ` : ''}${text(s.text)} ${sources(s.sources)}</li>`).join('')}</ul>` : empty()}</section>
     <section class="section"><h3>${esc(t('panel.events'))}</h3>${evs.length
@@ -77,43 +76,19 @@ export function mapView(decadeParam) {
     <section class="section"><h3>${esc(t('panel.places'))}</h3>${pls.length
       ? `<ul>${pls.map((pl) => `<li><a href="${link.place(pl.id)}">${text(pl.name)}</a>${pl.lat == null ? ` <span class="muted">(${esc(t('map.noCoords'))})</span>` : pl.approx ? ` <span class="muted">(${esc(t('map.approx'))})</span>` : ''}</li>`).join('')}</ul>` : empty()}</section>
     <section class="section"><h3>${esc(t('panel.people'))}</h3>${ppl.length
-      ? `<p>${esc(t('panel.peopleCount'))} ${ppl.length}. <a href="#/history/${decade}">${esc(t('panel.peopleLink'))} →</a></p>` : empty()}</section>`;
+      ? `<p>${esc(t('panel.peopleCount'))} ${ppl.length}. <a href="#/history/${decade}">${esc(t('panel.peopleLink'))} →</a></p>` : empty()}</section>`);
+  return { title: `${t('nav.map')} · ${decadeLabel(d)}`, html, focus: { decade } };
+}
 
-  const html = `
-    <div class="map-page">
-      <section class="map-wrap" aria-label="${esc(t('map.aria'))}">
-        <svg id="map" viewBox="0 0 800 560" role="img"><g id="map-base"></g><g id="map-objects"></g></svg>
-        <p id="map-status" class="map-status"></p>
-        <p class="map-credit">© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a></p>
-      </section>
-      <aside class="panel" aria-live="polite">${panel}</aside>
-      <nav class="timeline" aria-label="${esc(t('map.decades'))}"><ol>${db.decades.map((x) =>
-        `<li><a class="decade-btn" href="#/map/${x.decade}"${x.decade === decade ? ' aria-current="true"' : ''}>${esc(decadeLabel(x))}</a></li>`).join('')}</ol></nav>
-    </div>`;
-
-  async function mount(root) {
-    const svg = root.querySelector('#map');
-    svg.querySelector('#map-base').innerHTML = await loadBase();
-    const status = root.querySelector('#map-status');
-    const drawn = renderObjects(svg.querySelector('#map-objects'), db.places, (pl) => placeInDecade(pl, decade),
-      (pl) => { location.hash = link.place(pl.id); }, (pl) => plain(pl.short ?? pl.name));
-    const shown = db.places.filter((pl) => pl.lat != null && placeInDecade(pl, decade)).length;
-    if (!edit) status.textContent = drawn && shown ? '' : t('map.no_objects');
-    if (edit) {
-      svg.style.cursor = 'crosshair';
-      status.textContent = t('map.editHint');
-      svg.addEventListener('click', (e) => {
-        const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
-        const { x, y } = pt.matrixTransform(svg.getScreenCTM().inverse());
-        const ll = unproject(x, y);
-        if (!ll) return;
-        const s = `"lat": ${ll.lat.toFixed(6)}, "lon": ${ll.lon.toFixed(6)}`;
-        status.innerHTML = `${esc(t('map.pick'))} <code>${s}</code> <button type="button" id="copy-ll">${esc(t('map.copy'))}</button>`;
-        root.querySelector('#copy-ll').onclick = () => navigator.clipboard?.writeText(s);
-      });
-    }
-  }
-  return { title: `${t('nav.map')} · ${decadeLabel(d)}`, html, mount, layout: 'map', decade };
+// Первое десятилетие, в котором место есть на схеме (начиная с предпочтительного).
+function decadeForPlace(pl, preferred) {
+  if (preferred != null && placeInDecade(pl, preferred)) return preferred;
+  return db.decades.find((d) => placeInDecade(pl, d.decade))?.decade ?? preferred;
+}
+// Десятилетие для набора мест: первое из кандидатов, где видно хоть одно отмеченное место.
+function decadeFor(candidates, places) {
+  const placed = places.filter((p) => p.lat != null);
+  return candidates.find((d) => placed.some((p) => placeInDecade(p, d))) ?? candidates[0];
 }
 
 // ---------- Места: карточка ----------
@@ -124,14 +99,14 @@ export function placeView(id) {
   const ppl = [...new Set([...evs.flatMap(peopleOf), ...db.people.filter((p) => (p.places ?? []).includes(id))])];
   const decs = [...new Set(evs.flatMap(decadesOf))].sort((a, b) => a - b);
   const html = page(`
-    <p class="crumbs"><a href="#/map">${esc(t('nav.map'))}</a></p>
+    <p class="crumbs"><a href="#/map">🗺 ${esc(t('nav.map'))}</a></p>
     <h1>${text(pl.name)}</h1>
     ${pl.text ? `<p class="lead-sm">${text(pl.text)}</p>` : ''}
-    ${pl.lat == null ? `<p class="muted">${esc(t('place.noCoords'))}</p>` : pl.approx ? `<p class="muted">${esc(t('place.approx'))} <a href="#/map/2000">${esc(t('place.onMap'))}</a></p>` : `<p><a href="#/map/2000">${esc(t('place.onMap'))}</a></p>`}
+    ${pl.lat == null ? `<p class="muted">${esc(t('place.noCoords'))} <a href="#/mark">${esc(t('place.markIt'))}</a></p>` : pl.approx ? `<p class="muted">${esc(t('place.approx'))} <a href="#/mark">${esc(t('place.markIt'))}</a></p>` : ''}
     ${thumbs(pl.photos, 'large')}
     ${relations({ decades: decs, events: evs, src: pl.sources })}
     ${ppl.length ? `<h2>${esc(t('place.people'))} <span class="n">${ppl.length}</span></h2><p class="muted">${esc(t('place.peopleNote'))}</p><div class="people-grid">${ppl.map(personCard).join('')}</div>` : ''}`);
-  return { title: plain(pl.name), html };
+  return { title: plain(pl.name), html, focus: (cur) => ({ decade: decadeForPlace(pl, cur), highlight: [id], pulse: id }) };
 }
 
 // ---------- Люди ----------
@@ -174,7 +149,8 @@ export function personView(id) {
         ${relations({ decades: personDecades(p), events: evs, places, groups, src: p.sources })}
       </div>
     </article>`);
-  return { title: plain(p.name), html };
+  const mapPlaces = [...new Set([...places, ...evs.flatMap(placesOf)])];
+  return { title: plain(p.name), html, focus: { decade: decadeFor(personDecades(p), mapPlaces), highlight: mapPlaces.map((x) => x.id) } };
 }
 
 // ---------- События ----------
@@ -217,7 +193,7 @@ export function eventView(id) {
     ${ppl.length ? `<h2>${esc(t('rel.people'))} <span class="n">${ppl.length}</span></h2><div class="people-grid">${ppl.map(personCard).join('')}</div>` : ''}
     ${relations({ decades: decadesOf(e), places: placesOf(e) })}
     <nav class="pager">${i > 0 ? `<a href="${link.event(all[i - 1].id)}">← ${text(all[i - 1].title)}</a>` : '<span></span>'}${i >= 0 && i < all.length - 1 ? `<a href="${link.event(all[i + 1].id)}">${text(all[i + 1].title)} →</a>` : ''}</nav>`);
-  return { title: plain(e.title), html };
+  return { title: plain(e.title), html, focus: { decade: decadeFor(decadesOf(e), placesOf(e)), highlight: placesOf(e).map((x) => x.id) } };
 }
 
 // ---------- История ----------
@@ -248,7 +224,7 @@ export function historyView(decadeParam) {
   const mount = () => {
     if (decadeParam) document.getElementById(`d${decadeParam}`)?.scrollIntoView({ block: 'start' });
   };
-  return { title: t('nav.history'), html, mount, keepScroll: !!decadeParam };
+  return { title: t('nav.history'), html, mount, keepScroll: !!decadeParam, focus: decadeParam ? { decade: +decadeParam } : null };
 }
 
 // ---------- Фотоархив ----------
@@ -336,7 +312,11 @@ export function tourView(themeId, stepParam) {
       <p><a href="${link.event(e.id)}">${esc(t('tour.more'))} →</a></p>
     </article>
     <nav class="pager">${i > 0 ? `<a href="${link.theme(themeId)}/${i - 1}">← ${esc(t('tour.prev'))}</a>` : '<span></span>'}${i < stops.length - 1 ? `<a href="${link.theme(themeId)}/${i + 1}">${esc(t('tour.next'))} →</a>` : `<a href="#/tour">${esc(t('tour.end'))}</a>`}</nav>`);
-  return { title: plain(th.title) === plain(e.title) ? plain(e.title) : `${plain(th.title)} · ${plain(e.title)}`, html };
+  return {
+    title: plain(th.title) === plain(e.title) ? plain(e.title) : `${plain(th.title)} · ${plain(e.title)}`,
+    html,
+    focus: { decade: decadeFor(decadesOf(e), pls), highlight: pls.map((x) => x.id) },
+  };
 }
 
-export { notFound, decadeName, decadeEnd };
+export { notFound, decadeName, decadeEnd, decadeForPlace };

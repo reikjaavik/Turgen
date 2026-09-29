@@ -1,83 +1,185 @@
-// Стилизованная SVG-схема. Основа — assets/map/base.svg (построена из OpenStreetMap,
+// Схема села — постоянная «сцена» сайта. Основа — assets/map/base.svg (построена из OpenStreetMap,
 // см. scripts/build-base-map.mjs). Объекты ставятся только по реальным координатам.
 const SVG_NS = 'http://www.w3.org/2000/svg';
+const W = 800, H = 560;
 
-let baseMarkup = null; // кэш содержимого base.svg
-let projection = null; // { minLat, maxLat, minLon, maxLon, width, height }
+let projection = null; // { minLat, maxLat, minLon, maxLon, mPerPx }
+let svg, baseEl, objectsEl, draftsEl;
+let view = { x: 0, y: 0, w: W, h: H };
+let focus = { places: [], isVisible: () => true, highlight: new Set(), pulse: null };
+let drafts = {};
+let opts = { onSelect: () => {}, label: (o) => o.id, onMapClick: null };
 
-export async function loadBase() {
-  if (baseMarkup !== null) return baseMarkup;
+export async function initStage(svgEl, options) {
+  svg = svgEl;
+  opts = { ...opts, ...options };
+  baseEl = svg.querySelector('#map-base');
+  objectsEl = svg.querySelector('#map-objects');
+  draftsEl = svg.querySelector('#map-drafts');
   try {
     const res = await fetch('assets/map/base.svg');
     if (!res.ok) throw new Error(res.status);
     const root = new DOMParser().parseFromString(await res.text(), 'image/svg+xml').documentElement;
     const m = root.dataset;
-    if (m.minLat) {
-      projection = { minLat: +m.minLat, maxLat: +m.maxLat, minLon: +m.minLon, maxLon: +m.maxLon, width: 800, height: 560, mPerPx: +m.scaleM || null };
-    }
-    baseMarkup = root.innerHTML;
+    if (m.minLat) projection = { minLat: +m.minLat, maxLat: +m.maxLat, minLon: +m.minLon, maxLon: +m.maxLon, mPerPx: +m.scaleM || null };
+    baseEl.innerHTML = root.innerHTML;
   } catch {
-    baseMarkup = '';
+    baseEl.innerHTML = '';
   }
-  return baseMarkup;
+  setupPanZoom();
+  applyView();
 }
 
-export function renderObjects(objectsEl, places, isVisible, onSelect, label) {
-  objectsEl.replaceChildren();
-  if (!projection) return 0;
-  let drawn = 0;
-  // Примерные зоны — первыми, чтобы точки лежали поверх и оставались кликабельными.
-  const ordered = [...places].sort((a, b) => Boolean(b.approx) - Boolean(a.approx));
-  for (const o of ordered) {
-    if (o.lat == null || o.lon == null) continue;
-    const { x, y } = project(o.lat, o.lon);
-    const g = document.createElementNS(SVG_NS, 'g');
-    g.setAttribute('class', `map-object type-${o.type ?? 'other'}`);
-    g.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
-    g.setAttribute('tabindex', '0');
-    g.setAttribute('role', 'link');
-    g.dataset.visible = String(isVisible(o));
-    const title = document.createElementNS(SVG_NS, 'title');
-    title.textContent = label(o);
-    // approx: { radius } — место известно только примерно: рисуем зону радиусом radius метров, а не точку.
-    const r = o.approx && projection.mPerPx ? o.approx.radius / projection.mPerPx : 9;
-    if (o.approx) g.classList.add('approx');
-    const c = document.createElementNS(SVG_NS, 'circle');
-    c.setAttribute('r', r.toFixed(1));
-    const t = document.createElementNS(SVG_NS, 'text');
-    if (o.approx) {
-      t.setAttribute('x', '0');
-      t.setAttribute('y', (r + 18).toFixed(1));
-      t.setAttribute('text-anchor', 'middle');
-      t.textContent = `≈ ${label(o)}`;
-    } else {
-      t.setAttribute('x', '14');
-      t.setAttribute('y', '5');
-      t.textContent = label(o);
+// Экранный масштаб: насколько схема приближена (1 — вся схема).
+const zoomK = () => W / view.w;
+
+export function setFocus({ places, isVisible, highlight = [], pulse = null }) {
+  focus = { places, isVisible, highlight: new Set(highlight), pulse };
+  drawObjects();
+}
+
+export function setDrafts(d) {
+  drafts = d;
+  drawDrafts();
+}
+
+export function setMapClick(fn) {
+  opts.onMapClick = fn;
+  svg.classList.toggle('marking', !!fn);
+}
+
+export function zoomBy(f, cx = view.x + view.w / 2, cy = view.y + view.h / 2) {
+  const w = Math.min(W, Math.max(W / 8, view.w / f));
+  const h = (w * H) / W;
+  view = { x: cx - ((cx - view.x) * w) / view.w, y: cy - ((cy - view.y) * h) / view.h, w, h };
+  applyView();
+}
+export function resetZoom() { view = { x: 0, y: 0, w: W, h: H }; applyView(); }
+
+function applyView() {
+  // Не даём увести схему за край.
+  view.x = Math.min(Math.max(view.x, 0), W - view.w);
+  view.y = Math.min(Math.max(view.y, 0), H - view.h);
+  svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`);
+  svg.style.setProperty('--k', zoomK());
+  drawObjects();
+  drawDrafts();
+}
+
+function toSvg(e) {
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX; pt.y = e.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+function setupPanZoom() {
+  let drag = null;
+  svg.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false };
+  });
+  svg.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.moved && Math.hypot(dx, dy) < 5) return;
+    if (!drag.moved) svg.setPointerCapture?.(e.pointerId);
+    drag.moved = true;
+    const r = svg.getBoundingClientRect();
+    const s = Math.max(view.w / r.width, view.h / r.height);
+    view.x = drag.vx - dx * s; view.y = drag.vy - dy * s;
+    applyView();
+  });
+  const end = (e) => {
+    const wasDrag = drag?.moved;
+    drag = null;
+    if (wasDrag) { e.preventDefault(); svg.dataset.dragged = '1'; setTimeout(() => delete svg.dataset.dragged, 0); }
+  };
+  svg.addEventListener('pointerup', end);
+  svg.addEventListener('pointercancel', () => { drag = null; });
+  svg.addEventListener('click', (e) => {
+    if (svg.dataset.dragged) { e.stopPropagation(); return; }
+    if (opts.onMapClick && !e.target.closest('.map-object')) {
+      const ll = unproject(toSvg(e));
+      if (ll) opts.onMapClick(ll);
     }
-    g.append(title, c, t);
-    g.addEventListener('click', () => onSelect(o));
-    g.addEventListener('keydown', (e) => { if (e.key === 'Enter') onSelect(o); });
-    objectsEl.append(g);
-    drawn++;
-  }
-  return drawn;
+  }, true);
+  svg.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const p = toSvg(e);
+    zoomBy(e.deltaY < 0 ? 1.25 : 0.8, p.x, p.y);
+  }, { passive: false });
 }
 
-// Обратная проекция: точка SVG → широта/долгота (для режима разметки ?edit).
-export function unproject(x, y) {
+function drawObjects() {
+  if (!objectsEl) return;
+  objectsEl.replaceChildren();
+  if (!projection) return;
+  const k = zoomK();
+  const anyHl = focus.highlight.size > 0;
+  // Примерные зоны — первыми, чтобы точки лежали поверх и оставались кликабельными.
+  const ordered = [...focus.places].sort((a, b) => Boolean(b.approx) - Boolean(a.approx));
+  for (const o of ordered) {
+    if (o.lat == null || o.lon == null || drafts[o.id]) continue;
+    const { x, y } = project(o.lat, o.lon);
+    const g = el('g', { class: `map-object type-${o.type ?? 'other'}`, transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})`, tabindex: '0', role: 'link' });
+    g.dataset.visible = String(focus.isVisible(o));
+    if (o.approx) g.classList.add('approx');
+    if (focus.highlight.has(o.id)) g.classList.add('hl');
+    else if (anyHl) g.classList.add('dim');
+    if (focus.pulse === o.id) g.classList.add('pulse');
+    const label = opts.label(o);
+    const title = el('title');
+    title.textContent = label;
+    // approx: { radius } — место известно только примерно: зона радиусом radius метров, а не точка.
+    const r = o.approx && projection.mPerPx ? o.approx.radius / projection.mPerPx : 9 / k;
+    const c = el('circle', { r: r.toFixed(2) });
+    const t = el('text', o.approx
+      ? { x: 0, y: (r + 18 / k).toFixed(2), 'text-anchor': 'middle' }
+      : { x: (14 / k).toFixed(2), y: (5 / k).toFixed(2) });
+    t.textContent = o.approx ? `≈ ${label}` : label;
+    g.append(title, c, t);
+    g.addEventListener('click', (e) => { if (!svg.dataset.dragged) { e.stopPropagation(); opts.onSelect(o); } });
+    g.addEventListener('keydown', (e) => { if (e.key === 'Enter') opts.onSelect(o); });
+    objectsEl.append(g);
+  }
+}
+
+function drawDrafts() {
+  if (!draftsEl) return;
+  draftsEl.replaceChildren();
+  if (!projection) return;
+  const k = zoomK();
+  for (const [id, ll] of Object.entries(drafts)) {
+    const { x, y } = project(ll.lat, ll.lon);
+    const g = el('g', { class: 'map-draft', transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})` });
+    const c = el('circle', { r: (9 / k).toFixed(2) });
+    const t = el('text', { x: (14 / k).toFixed(2), y: (5 / k).toFixed(2) });
+    t.textContent = opts.label({ id, ...(opts.placeById?.(id) ?? {}) });
+    g.append(c, t);
+    draftsEl.append(g);
+  }
+}
+
+function el(name, attrs = {}) {
+  const n = document.createElementNS(SVG_NS, name);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  return n;
+}
+
+// Обратная проекция: точка SVG → широта/долгота.
+export function unproject({ x, y }) {
   const p = projection;
   if (!p) return null;
   return {
-    lon: p.minLon + (x / p.width) * (p.maxLon - p.minLon),
-    lat: p.maxLat - (y / p.height) * (p.maxLat - p.minLat),
+    lon: p.minLon + (x / W) * (p.maxLon - p.minLon),
+    lat: p.maxLat - (y / H) * (p.maxLat - p.minLat),
   };
 }
 
 function project(lat, lon) {
   const p = projection;
   return {
-    x: ((lon - p.minLon) / (p.maxLon - p.minLon)) * p.width,
-    y: ((p.maxLat - lat) / (p.maxLat - p.minLat)) * p.height,
+    x: ((lon - p.minLon) / (p.maxLon - p.minLon)) * W,
+    y: ((p.maxLat - lat) / (p.maxLat - p.minLat)) * H,
   };
 }

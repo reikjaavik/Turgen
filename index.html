@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Турген — люди, события и память</title>
-  <meta name="description" content="Проект об истории аула Турген (до 2007 года — Тургеневка) и людях, чьи судьбы связаны с его историей.">
+  <meta name="description" content="Карта аула Турген (до 2007 года — Тургеневка) по десятилетиям: люди, события и память.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%239a4f22'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white' font-family='sans-serif'%3EТ%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -31,7 +31,38 @@
 
   <p id="lang-notice" class="notice" hidden></p>
 
-  <main id="view" tabindex="-1"></main>
+  <main class="app">
+    <section id="stage" class="stage" aria-label="Схема аула">
+      <svg id="map" viewBox="0 0 800 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Схема аула Турген">
+        <g id="map-base"></g>
+        <g id="map-objects"></g>
+        <g id="map-drafts"></g>
+      </svg>
+      <p id="stage-decade" class="stage-decade" aria-live="polite"></p>
+      <div class="stage-tools">
+        <button type="button" data-zoom="in" aria-label="Приблизить">+</button>
+        <button type="button" data-zoom="out" aria-label="Отдалить">−</button>
+        <button type="button" data-zoom="reset" aria-label="Вся схема">⤢</button>
+      </div>
+      <details id="unmarked" class="unmarked" hidden>
+        <summary></summary>
+        <ul></ul>
+      </details>
+      <p id="stage-hint" class="stage-hint" hidden></p>
+      <p class="map-credit">© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a></p>
+      <button type="button" id="drawer-open" class="drawer-open" hidden data-i18n="drawer.open">Открыть панель</button>
+    </section>
+
+    <aside id="drawer" class="drawer" aria-label="Панель раздела">
+      <div class="drawer-bar">
+        <button type="button" id="drawer-size" class="drawer-handle" aria-label="Развернуть или свернуть панель"><span></span></button>
+        <button type="button" id="drawer-close" class="drawer-close" aria-label="Свернуть панель">✕</button>
+      </div>
+      <div id="view" class="drawer-body" tabindex="-1"></div>
+    </aside>
+
+    <nav class="timeline" aria-label="Десятилетия"><ol id="timeline"></ol></nav>
+  </main>
 
   <dialog id="lightbox" class="lightbox" aria-label="Фото">
     <figure>
