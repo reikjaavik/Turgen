@@ -1,0 +1,144 @@
+:root {
+  --bg: #f6f1e7;
+  --surface: #fffdf8;
+  --ink: #2b2a26;
+  --muted: #6d6a60;
+  --line: #ddd4c2;
+  --accent: #9a4f22;
+  --accent-ink: #fff;
+  --river: #9cc3d5;
+  --focus: #1f5fbf;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1d1c19;
+    --surface: #262521;
+    --ink: #eee9dc;
+    --muted: #a7a293;
+    --line: #3a382f;
+    --accent: #e0925e;
+    --accent-ink: #1d1c19;
+    --river: #3f6b80;
+    --focus: #7fb0ff;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.brand h1 { margin: 0; font-size: 1.5rem; line-height: 1.2; }
+.subtitle { margin: 0; color: var(--muted); font-size: .9rem; }
+.topnav { display: flex; align-items: center; gap: 16px; }
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.lang button {
+  border: 0; background: transparent; color: var(--ink);
+  padding: 6px 12px; font: inherit; cursor: pointer;
+}
+.lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
+.notice {
+  margin: 0; padding: 8px 16px; font-size: .9rem;
+  background: #fff3cd; color: #5c4400; border-bottom: 1px solid #e6d28a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .notice { background: #3a3116; color: #f0dc9a; border-color: #5b4d1c; }
+}
+
+.layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  gap: 16px;
+  padding: 16px;
+}
+.map-wrap {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 320px;
+}
+#map { display: block; width: 100%; height: 100%; }
+.map-status {
+  position: absolute; left: 12px; bottom: 8px; margin: 0;
+  font-size: .85rem; color: var(--muted);
+}
+.map-placeholder-text {
+  margin: 0; height: 100%; display: flex; align-items: center; justify-content: center;
+  text-align: center; color: var(--muted); font: 1.1rem/1.4 system-ui, sans-serif;
+}
+.map-placeholder rect { fill: none; stroke: var(--line); stroke-dasharray: 6 6; }
+
+.map-object { transition: opacity .4s ease; cursor: pointer; }
+.map-object[data-visible="false"] { opacity: 0; pointer-events: none; }
+.map-object circle { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  overflow-y: auto;
+}
+.decade-title { margin: 0 0 12px; font-size: 1.4rem; }
+.section { margin-bottom: 20px; }
+.section h3 {
+  margin: 0 0 6px; font-size: 1rem;
+  text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+}
+.section ul { margin: 0; padding-left: 1.1em; }
+.section li { margin-bottom: 6px; }
+.empty { margin: 0; color: var(--muted); font-style: italic; }
+.src { font-size: .8rem; color: var(--muted); }
+.fallback-mark { font-size: .75rem; color: var(--muted); }
+
+.timeline {
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  padding: 10px 16px;
+  overflow-x: auto;
+}
+.timeline ol {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; gap: 8px; min-width: max-content; justify-content: center;
+}
+.timeline button {
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+  border-radius: 999px; padding: 8px 16px; font: inherit; cursor: pointer;
+  transition: background .2s, color .2s;
+}
+.timeline button:hover { background: var(--bg); }
+.timeline button[aria-current="true"] {
+  background: var(--accent); color: var(--accent-ink); border-color: var(--accent);
+}
+
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; }
+  .map-wrap { min-height: 260px; }
+  .timeline ol { justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
