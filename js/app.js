@@ -44,7 +44,7 @@ function photosHtml(photos = []) {
   if (!photos.length) return '';
   return `<div class="photos">${photos.map((p) => {
     const cap = pick(p.caption).text;
-    return `<figure><button type="button" class="thumb" data-photo="${esc(p.id)}" aria-label="${esc(cap)}"><img loading="lazy" src="assets/photos/${esc(p.id)}.jpg" alt="${esc(cap)}"></button></figure>`;
+    return `<figure><button type="button" class="thumb" data-photo="${esc(p.id)}" aria-label="${esc(cap)}"><img loading="lazy" decoding="async" src="assets/photos/thumb/${esc(p.id)}.jpg" alt="${esc(cap)}"></button></figure>`;
   }).join('')}</div>`;
 }
 
@@ -56,11 +56,14 @@ function section(titleKey, items, renderItem, cls = '') {
 }
 
 // Событие показывается в десятилетии, если его год или период [from, to] попадает в [decade, decade+9].
-function inDecade(e, decade) {
+function inDecade(e, start, end) {
   const from = e.from ?? e.year;
   const to = e.to ?? e.year;
-  return from == null || (from <= decade + 9 && to >= decade);
+  return from == null || (from <= end && to >= start);
 }
+
+const decadeEnd = (d) => d.end ?? d.decade + 9;
+const decadeLabel = (d) => (d.label ? pick(d.label).text : `${d.decade}${t('decade.suffix')}`);
 
 const itemText = (e) =>
   `${e.year ? `<strong>${e.year}:</strong> ` : ''}${textHtml(e.text)} ${sourcesHtml(e.sources)}${photosHtml(e.photos)}`;
@@ -71,14 +74,15 @@ const personHtml = (p) =>
 
 function renderPanel() {
   const d = state.decades.find((x) => x.decade === state.decade);
-  el.title.textContent = `${state.decade}${t('decade.suffix')}`;
-  const objs = state.objects.filter((o) => isVisible(o, state.decade));
+  el.title.textContent = d ? decadeLabel(d) : '';
+  const end = d ? decadeEnd(d) : state.decade + 9;
+  const objs = state.objects.filter((o) => isVisible(o, state.decade, end));
   const about = state.about.length
     ? `<details class="about"><summary>${esc(t('panel.about'))}</summary><ul>${state.about.map((a) => `<li>${itemText(a)}</li>`).join('')}</ul></details>`
     : '';
   el.body.innerHTML = [
     section('panel.population', (d?.population ?? []), itemText),
-    section('panel.events', (d?.events ?? []).filter((e) => inDecade(e, state.decade)), itemText),
+    section('panel.events', (d?.events ?? []).filter((e) => inDecade(e, state.decade, end)), itemText),
     section('panel.objects', objs, (o) => `<strong>${textHtml(o.name)}</strong> ${o.text ? textHtml(o.text) : ''} ${sourcesHtml(o.sources)}${photosHtml(o.photos)}`),
     section('panel.people', d?.people ?? [], personHtml, 'people'),
     about,
@@ -86,13 +90,14 @@ function renderPanel() {
 }
 
 function renderMap() {
-  const drawn = renderObjects(el.mapObjects, state.objects, state.decade, () => {});
+  const d = state.decades.find((x) => x.decade === state.decade);
+  const drawn = renderObjects(el.mapObjects, state.objects, state.decade, d ? decadeEnd(d) : state.decade + 9, () => {});
   if (!editMode) el.mapStatus.textContent = state.baseLoaded && drawn === 0 ? t('map.no_objects') : '';
 }
 
 function renderTimeline() {
   el.timeline.innerHTML = state.decades.map((d) =>
-    `<li><button type="button" data-decade="${d.decade}"${d.decade === state.decade ? ' aria-current="true"' : ''}>${d.decade}${esc(t('decade.suffix'))}</button></li>`
+    `<li><button type="button" data-decade="${d.decade}"${d.decade === state.decade ? ' aria-current="true"' : ''}>${esc(decadeLabel(d))}</button></li>`
   ).join('');
 }
 

@@ -158,5 +158,330 @@
   "id": "kolkhoz-brigada",
   "slide": 43,
   "media": "image82.jpeg"
+ },
+ {
+  "id": "belaya",
+  "slide": 38,
+  "media": "image73.jpeg"
+ },
+ {
+  "id": "talerchik",
+  "slide": 39,
+  "media": "image74.jpeg"
+ },
+ {
+  "id": "shinkarenko",
+  "slide": 39,
+  "media": "image75.jpeg"
+ },
+ {
+  "id": "kazak",
+  "slide": 40,
+  "media": "image77.jpeg"
+ },
+ {
+  "id": "poleshchuk",
+  "slide": 41,
+  "media": "image78.jpeg"
+ },
+ {
+  "id": "derevyanko-1",
+  "slide": 12,
+  "media": "image14.jpeg"
+ },
+ {
+  "id": "derevyanko-2",
+  "slide": 12,
+  "media": "image15.jpeg"
+ },
+ {
+  "id": "derevyanko-3",
+  "slide": 12,
+  "media": "image19.jpeg"
+ },
+ {
+  "id": "monument-open",
+  "slide": 19,
+  "media": "image38.jpeg"
+ },
+ {
+  "id": "monument-2",
+  "slide": 19,
+  "media": "image39.jpeg"
+ },
+ {
+  "id": "monument-after",
+  "slide": 19,
+  "media": "image35.jpeg"
+ },
+ {
+  "id": "monument-gen-1",
+  "slide": 19,
+  "media": "image36.jpeg"
+ },
+ {
+  "id": "monument-gen-2",
+  "slide": 19,
+  "media": "image37.jpeg"
+ },
+ {
+  "id": "vet-ganisevsky",
+  "slide": 44,
+  "media": "image86.png"
+ },
+ {
+  "id": "vet-usik",
+  "slide": 44,
+  "media": "image87.png"
+ },
+ {
+  "id": "vet-taymanov",
+  "slide": 44,
+  "media": "image88.png"
+ },
+ {
+  "id": "vet-semenov",
+  "slide": 44,
+  "media": "image83.png"
+ },
+ {
+  "id": "vet-chernysh",
+  "slide": 44,
+  "media": "image84.png"
+ },
+ {
+  "id": "vet-shemet",
+  "slide": 44,
+  "media": "image89.png"
+ },
+ {
+  "id": "vet-luzanov",
+  "slide": 44,
+  "media": "image85.png"
+ },
+ {
+  "id": "director-1",
+  "slide": 46,
+  "media": "image94.jpeg"
+ },
+ {
+  "id": "director-2",
+  "slide": 46,
+  "media": "image96.jpeg"
+ },
+ {
+  "id": "sovkhoz-1",
+  "slide": 47,
+  "media": "image98.png"
+ },
+ {
+  "id": "sovkhoz-2",
+  "slide": 47,
+  "media": "image97.png"
+ },
+ {
+  "id": "sovkhoz-3",
+  "slide": 47,
+  "media": "image99.png"
+ },
+ {
+  "id": "sovkhoz-4",
+  "slide": 47,
+  "media": "image100.png"
+ },
+ {
+  "id": "gusev",
+  "slide": 54,
+  "media": "image105.jpeg"
+ },
+ {
+  "id": "eko-1",
+  "slide": 55,
+  "media": "image106.jpeg"
+ },
+ {
+  "id": "eko-2",
+  "slide": 55,
+  "media": "image107.jpeg"
+ },
+ {
+  "id": "eko-3",
+  "slide": 55,
+  "media": "image108.jpeg"
+ },
+ {
+  "id": "dom-kultury",
+  "slide": 56,
+  "media": "image110.jpeg"
+ },
+ {
+  "id": "pochta",
+  "slide": 56,
+  "media": "image113.jpeg"
+ },
+ {
+  "id": "pekarnya",
+  "slide": 56,
+  "media": "image118.jpeg"
+ },
+ {
+  "id": "poliklinika",
+  "slide": 56,
+  "media": "image111.jpeg"
+ },
+ {
+  "id": "kontora",
+  "slide": 56,
+  "media": "image114.jpeg"
+ },
+ {
+  "id": "shkola",
+  "slide": 56,
+  "media": "image119.jpeg"
+ },
+ {
+  "id": "detsad",
+  "slide": 56,
+  "media": "image112.jpeg"
+ },
+ {
+  "id": "magaziny-1",
+  "slide": 56,
+  "media": "image115.jpeg"
+ },
+ {
+  "id": "magaziny-2",
+  "slide": 56,
+  "media": "image116.jpeg"
+ },
+ {
+  "id": "magaziny-3",
+  "slide": 56,
+  "media": "image117.jpeg"
+ },
+ {
+  "id": "magaziny-4",
+  "slide": 56,
+  "media": "image109.jpeg"
+ },
+ {
+  "id": "magaziny-5",
+  "slide": 56,
+  "media": "image120.jpeg"
+ },
+ {
+  "id": "svinoferma",
+  "slide": 57,
+  "media": "image123.jpeg"
+ },
+ {
+  "id": "ferma",
+  "slide": 57,
+  "media": "image121.jpeg"
+ },
+ {
+  "id": "krs-1",
+  "slide": 57,
+  "media": "image122.jpeg"
+ },
+ {
+  "id": "krs-2",
+  "slide": 57,
+  "media": "image124.jpeg"
+ },
+ {
+  "id": "masterskie",
+  "slide": 58,
+  "media": "image125.jpeg"
+ },
+ {
+  "id": "shcheben",
+  "slide": 58,
+  "media": "image128.jpeg"
+ },
+ {
+  "id": "elevator",
+  "slide": 58,
+  "media": "image127.jpeg"
+ },
+ {
+  "id": "dom-molodym",
+  "slide": 58,
+  "media": "image126.jpeg"
+ },
+ {
+  "id": "pole-svarka",
+  "slide": 59,
+  "media": "image129.jpeg"
+ },
+ {
+  "id": "pole-seyalka",
+  "slide": 59,
+  "media": "image131.jpeg"
+ },
+ {
+  "id": "mtm-stoyanka",
+  "slide": 59,
+  "media": "image130.jpeg"
+ },
+ {
+  "id": "mtm",
+  "slide": 59,
+  "media": "image132.jpeg"
+ },
+ {
+  "id": "seno-1",
+  "slide": 60,
+  "media": "image133.jpeg"
+ },
+ {
+  "id": "seno-2",
+  "slide": 60,
+  "media": "image136.jpeg"
+ },
+ {
+  "id": "himobrabotka",
+  "slide": 60,
+  "media": "image135.jpeg"
+ },
+ {
+  "id": "traktory",
+  "slide": 60,
+  "media": "image134.jpeg"
+ },
+ {
+  "id": "kirpich",
+  "slide": 61,
+  "media": "image137.jpeg"
+ },
+ {
+  "id": "kabel-1",
+  "slide": 62,
+  "media": "image138.jpeg"
+ },
+ {
+  "id": "kabel-2",
+  "slide": 62,
+  "media": "image139.jpeg"
+ },
+ {
+  "id": "klub-1",
+  "slide": 63,
+  "media": "image140.jpeg"
+ },
+ {
+  "id": "klub-2",
+  "slide": 63,
+  "media": "image141.jpeg"
+ },
+ {
+  "id": "biblioteka-1",
+  "slide": 64,
+  "media": "image142.jpeg"
+ },
+ {
+  "id": "biblioteka-2",
+  "slide": 64,
+  "media": "image143.jpeg"
  }
 ]

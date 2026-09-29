@@ -15,6 +15,588 @@
      "id": "deck",
      "ref": "слайды 17, 19"
     }
+   ],
+   "photos": [
+    {
+     "id": "monument-after",
+     "caption": {
+      "ru": "Памятник воинам-односельчанам, павшим в годы Великой Отечественной войны 1941–1945 гг., после реставрации (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 19"
+      }
+     ]
+    },
+    {
+     "id": "monument-open",
+     "caption": {
+      "ru": "Открытие памятника после реставрации (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 19"
+      }
+     ]
+    },
+    {
+     "id": "monument-2",
+     "caption": {
+      "ru": "Фото со слайда 19 (подписи нет)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 19"
+      }
+     ]
+    },
+    {
+     "id": "monument-gen-1",
+     "caption": {
+      "ru": "«Дань уважения погибшим воинам отдаёт новое поколение защитников Родины» (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 19"
+      }
+     ]
+    },
+    {
+     "id": "monument-gen-2",
+     "caption": {
+      "ru": "«Дань уважения погибшим воинам отдаёт новое поколение защитников Родины» (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 19"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dom-kultury",
+   "type": "culture",
+   "name": {
+    "ru": "Дом культуры"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 56"
+    }
+   ],
+   "photos": [
+    {
+     "id": "dom-kultury",
+     "caption": {
+      "ru": "Дом культуры (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pochta",
+   "type": "service",
+   "name": {
+    "ru": "Почта"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 56"
+    }
+   ],
+   "photos": [
+    {
+     "id": "pochta",
+     "caption": {
+      "ru": "Почта (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pekarnya",
+   "type": "service",
+   "name": {
+    "ru": "Пекарня"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 56"
+    }
+   ],
+   "photos": [
+    {
+     "id": "pekarnya",
+     "caption": {
+      "ru": "Пекарня (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "poliklinika",
+   "type": "health",
+   "name": {
+    "ru": "Поликлиника"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 56"
+    }
+   ],
+   "photos": [
+    {
+     "id": "poliklinika",
+     "caption": {
+      "ru": "Поликлиника (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shkola",
+   "type": "school",
+   "name": {
+    "ru": "Школа"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 56"
+    }
+   ],
+   "photos": [
+    {
+     "id": "shkola",
+     "caption": {
+      "ru": "Школа (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "detsad",
+   "type": "school",
+   "name": {
+    "ru": "Детский сад «Василёк»"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 56"
+    }
+   ],
+   "photos": [
+    {
+     "id": "detsad",
+     "caption": {
+      "ru": "Детский сад «Василёк» (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kontora",
+   "type": "office",
+   "name": {
+    "ru": "Контора ТОО Агрофирмы «Поиск»"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 56"
+    }
+   ],
+   "photos": [
+    {
+     "id": "kontora",
+     "caption": {
+      "ru": "Контора ТОО Агрофирмы «Поиск» (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "magaziny",
+   "type": "shop",
+   "name": {
+    "ru": "Магазины: «7-Я», «Радуга», «Армас», «Колхозник», «Самал»"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 56"
+    }
+   ],
+   "photos": [
+    {
+     "id": "magaziny-1",
+     "caption": {
+      "ru": "Магазины (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    },
+    {
+     "id": "magaziny-2",
+     "caption": {
+      "ru": "Магазины (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    },
+    {
+     "id": "magaziny-3",
+     "caption": {
+      "ru": "Магазины (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    },
+    {
+     "id": "magaziny-4",
+     "caption": {
+      "ru": "Магазины (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    },
+    {
+     "id": "magaziny-5",
+     "caption": {
+      "ru": "Магазины (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 56"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "svinoferma",
+   "type": "farm",
+   "name": {
+    "ru": "Свиноферма"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 57"
+    }
+   ],
+   "photos": [
+    {
+     "id": "svinoferma",
+     "caption": {
+      "ru": "Свиноферма (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 57"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "krs",
+   "type": "farm",
+   "name": {
+    "ru": "Крупный рогатый скот (ферма)"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 57"
+    }
+   ],
+   "photos": [
+    {
+     "id": "krs-1",
+     "caption": {
+      "ru": "Крупный рогатый скот (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 57"
+      }
+     ]
+    },
+    {
+     "id": "krs-2",
+     "caption": {
+      "ru": "Крупный рогатый скот (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 57"
+      }
+     ]
+    },
+    {
+     "id": "ferma",
+     "caption": {
+      "ru": "Фото со слайда 57 (подписи нет)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 57"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "elevator",
+   "type": "industry",
+   "name": {
+    "ru": "Элеватор"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 58"
+    }
+   ],
+   "photos": [
+    {
+     "id": "elevator",
+     "caption": {
+      "ru": "Элеватор (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 58"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "masterskie",
+   "type": "industry",
+   "name": {
+    "ru": "Мастерские"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 58"
+    }
+   ],
+   "photos": [
+    {
+     "id": "masterskie",
+     "caption": {
+      "ru": "Мастерские (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 58"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shcheben",
+   "type": "industry",
+   "name": {
+    "ru": "Щебёночный завод"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 58"
+    }
+   ],
+   "photos": [
+    {
+     "id": "shcheben",
+     "caption": {
+      "ru": "Щебёночный завод (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 58"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mts-stoyanka",
+   "type": "industry",
+   "name": {
+    "ru": "Машинотракторная стоянка"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 59"
+    }
+   ],
+   "photos": [
+    {
+     "id": "mtm-stoyanka",
+     "caption": {
+      "ru": "Машинотракторная стоянка (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 59"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mtm",
+   "type": "industry",
+   "name": {
+    "ru": "МТМ"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 59"
+    }
+   ],
+   "photos": [
+    {
+     "id": "mtm",
+     "caption": {
+      "ru": "МТМ (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 59"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dom-molodym",
+   "type": "building",
+   "name": {
+    "ru": "Строительство нового дома для молодых специалистов"
+   },
+   "present": true,
+   "sources": [
+    {
+     "id": "deck",
+     "ref": "слайд 58"
+    }
+   ],
+   "photos": [
+    {
+     "id": "dom-molodym",
+     "caption": {
+      "ru": "Строительство нового дома для молодых специалистов (подпись на слайде)"
+     },
+     "sources": [
+      {
+       "id": "deck",
+       "ref": "слайд 58"
+      }
+     ]
+    }
    ]
   }
  ]

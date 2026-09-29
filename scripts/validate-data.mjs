@@ -16,13 +16,14 @@ const checkSources = (where, list) => {
   for (const s of list) if (!ids.has(s?.id)) err(`${where}: неизвестный источник "${s?.id}"`);
 };
 const checkYear = (where, y) => {
-  if (y != null && !(Number.isInteger(y) && y >= 1900 && y <= 1999)) err(`${where}: год ${y} вне 1900–1999`);
+  if (y != null && !(Number.isInteger(y) && y >= 1900 && y <= 2029)) err(`${where}: год ${y} вне 1900–2029`);
 };
 const hasText = (f) => f && (typeof f === 'string' ? f.trim() : f.ru?.trim());
 const checkPhotos = (where, rec) => {
   for (const p of rec.photos ?? []) {
     usedPhotos.add(p.id);
     if (!p.id || !existsSync(new URL(`../assets/photos/${p.id}.jpg`, import.meta.url))) err(`${where}: нет файла assets/photos/${p.id}.jpg`);
+    if (!existsSync(new URL(`../assets/photos/thumb/${p.id}.jpg`, import.meta.url))) err(`${where}: нет превью assets/photos/thumb/${p.id}.jpg`);
     if (!hasText(p.caption)) err(`${where}: у фото ${p.id} нет подписи`);
     checkSources(`${where} / фото ${p.id}`, p.sources);
   }
@@ -42,7 +43,9 @@ about.forEach((a, i) => checkRecord(`about[${i}]`, a));
 const seen = new Set();
 const personIds = new Set();
 for (const d of decades) {
-  if (d.decade % 10 !== 0 || d.decade < 1900 || d.decade > 1990) err(`десятилетие ${d.decade} вне шкалы`);
+  if (d.decade % 10 !== 0 || d.decade < 1900 || d.decade > 2000) err(`десятилетие ${d.decade} вне шкалы`);
+  if (d.decade === 2000 && !hasText(d.label)) err('период 2000 (Сегодня): нужна подпись label');
+  if (d.end != null && d.end < d.decade) err(`${d.decade}: end меньше начала`);
   if (seen.has(d.decade)) err(`десятилетие ${d.decade} повторяется`);
   seen.add(d.decade);
   (d.population ?? []).forEach((r, i) => checkRecord(`${d.decade}/population[${i}]`, r));
@@ -60,7 +63,8 @@ objects.forEach((o, i) => {
   const w = `objects[${i}]${o.id ? ` (${o.id})` : ''}`;
   if (!o.id || !hasText(o.name)) err(`${w}: нет id или названия`);
   if ((o.lat == null) !== (o.lon == null)) err(`${w}: заданы не обе координаты`);
-  checkRecord(w, o);
+  if (!o.present && o.from == null && o.to == null) err(`${w}: нужны from/to или present: true`);
+  checkRecord(w, o, { needText: false });
 });
 
 for (const f of readdirSync(new URL('../assets/photos/', import.meta.url))) {

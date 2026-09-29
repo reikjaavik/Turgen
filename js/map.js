@@ -33,7 +33,7 @@ export async function loadBase(baseEl, t) {
 }
 
 // Objects are placed by real coordinates only. No lat/lon or no projection → not drawn.
-export function renderObjects(objectsEl, objects, year, onSelect) {
+export function renderObjects(objectsEl, objects, start, end, onSelect) {
   objectsEl.replaceChildren();
   if (!projection) return 0;
   let drawn = 0;
@@ -43,7 +43,7 @@ export function renderObjects(objectsEl, objects, year, onSelect) {
     const g = document.createElementNS(SVG_NS, 'g');
     g.setAttribute('class', 'map-object');
     g.setAttribute('transform', `translate(${x} ${y})`);
-    g.dataset.visible = String(isVisible(o, year));
+    g.dataset.visible = String(isVisible(o, start, end));
     g.setAttribute('tabindex', '0');
     const c = document.createElementNS(SVG_NS, 'circle');
     c.setAttribute('r', '8');
@@ -56,11 +56,13 @@ export function renderObjects(objectsEl, objects, year, onSelect) {
   return drawn;
 }
 
-// An object exists in a decade if its [from, to] overlaps [year, year+9]. Unknown bounds are open.
-export function isVisible(o, year) {
+// Объект есть в периоде [start, end], если его [from, to] пересекается с периодом. Неизвестные границы открыты.
+// present: true — объект «сегодняшний» (дата основания неизвестна): виден только в периоде «Сегодня» (с 2000 года).
+export function isVisible(o, start, end) {
+  if (o.present) return end >= 2000;
   const from = o.from ?? -Infinity;
   const to = o.to ?? Infinity;
-  return from <= year + 9 && to >= year;
+  return from <= end && to >= start;
 }
 
 // Обратная проекция: точка SVG → широта/долгота (для режима разметки).
