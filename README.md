@@ -55,4 +55,5 @@ python3 -m http.server 8000
 Офлайн-версия одним файлом: `node scripts/build-single.mjs` → `dist/turgen.html`
 (данные, схема и фото встроены; открывается двойным щелчком, без сервера).
 
-Основа схемы — © участники OpenStreetMap (ODbL), см. `scripts/build-base-map.mjs`.
+Основа схемы — © участники OpenStreetMap (дороги, река, застройка) и контуры зданий Overture Maps
+(Microsoft ML Buildings + OSM), лицензия ODbL; см. `scripts/build-base-map.mjs` и `data/raw/`.

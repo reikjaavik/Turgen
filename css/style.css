@@ -320,7 +320,7 @@ body[data-drawer="closed"] .drawer { display: none; }
 .map-object circle { fill: var(--c); }
 .map-object.hl circle { stroke: var(--ink); }
 .legend {
-  position: absolute; right: 10px; top: 10px; margin: 0; padding: 8px 10px; list-style: none;
+  position: absolute; left: 16px; bottom: 30px; margin: 0; padding: 8px 10px; list-style: none;
   background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: .8rem; display: grid; gap: 3px;
 }
 .legend[hidden] { display: none; }

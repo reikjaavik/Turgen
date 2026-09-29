@@ -1,11 +1,12 @@
-// Строит assets/map/base.svg из выгрузки OpenStreetMap (data/raw/turgen.osm).
+// Строит assets/map/base.svg из выгрузки OpenStreetMap (data/raw/turgen.osm) и контуров зданий
+// Overture Maps (data/raw/overture-buildings.geojson: Microsoft ML Buildings + OSM, лицензия ODbL).
 // Запуск: node scripts/build-base-map.mjs [центр_lat центр_lon ширина_м]
 // Выгрузка: curl "https://api.openstreetmap.org/api/0.6/map?bbox=W,S,E,N" -o data/raw/turgen.osm
-// Данные © участники OpenStreetMap, лицензия ODbL.
-import { readFileSync, writeFileSync } from 'node:fs';
+// Данные © участники OpenStreetMap; Microsoft; Overture Maps Foundation — лицензия ODbL.
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 const W = 800, H = 560;
-const [cLat = 50.7625, cLon = 72.3235, widthM = 2200] = process.argv.slice(2).map(Number);
+const [cLat = 50.7615, cLon = 72.3235, widthM = 2400] = process.argv.slice(2).map(Number);
 const M_PER_DEG_LAT = 111320;
 const mPerDegLon = M_PER_DEG_LAT * Math.cos((cLat * Math.PI) / 180);
 const heightM = (widthM * H) / W;
@@ -41,6 +42,20 @@ for (const w of ways) {
   else if (t.waterway) layers.river.push(`<path d="${d(w.pts)}"/>`);
   else if (t.highway && ROAD[t.highway]) layers.roads.push(`<path class="road-${ROAD[t.highway]}" d="${d(w.pts)}"${t.name ? ` data-name="${esc(t.name)}"` : ''}/>`);
   else if (t.building) layers.buildings.push(`<path d="${d(w.pts, true)}"/>`);
+}
+
+// Здания: если есть выгрузка Overture — берём её (в ней уже есть и здания из OSM), иначе — здания OSM.
+const OVERTURE = new URL('../data/raw/overture-buildings.geojson', import.meta.url);
+if (existsSync(OVERTURE)) {
+  const fc = JSON.parse(readFileSync(OVERTURE, 'utf8'));
+  layers.buildings = [];
+  for (const f of fc.features) {
+    const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+    for (const rings of polys) {
+      const pts = rings[0].map(([lon, lat]) => [lat, lon]);
+      if (inView(pts)) layers.buildings.push(`<path d="${d(pts, true)}"/>`);
+    }
+  }
 }
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" data-min-lat="${view.minLat}" data-max-lat="${view.maxLat}" data-min-lon="${view.minLon}" data-max-lon="${view.maxLon}" data-scale-m="${widthM / W}">
