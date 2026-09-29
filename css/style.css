@@ -303,7 +303,7 @@ body[data-drawer="closed"] .drawer { display: none; }
 .map-object[data-visible="false"] { opacity: 0; pointer-events: none; }
 .map-object.dim { opacity: .35; }
 .map-object circle { stroke: var(--surface); stroke-width: 3; vector-effect: non-scaling-stroke; }
-.map-object.approx circle { fill: var(--accent); fill-opacity: .15; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 5; }
+.map-object.approx circle { fill: var(--c); fill-opacity: .15; stroke: var(--c); stroke-width: 2; stroke-dasharray: 6 5; }
 .map-object.approx.hl circle { fill-opacity: .3; stroke-width: 3; }
 .map-object text, .map-draft text {
   font: 600 calc(15px / var(--k, 1)) system-ui, sans-serif; fill: var(--ink);

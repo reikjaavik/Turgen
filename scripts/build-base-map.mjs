@@ -6,7 +6,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 const W = 800, H = 560;
-const [cLat = 50.7615, cLon = 72.3235, widthM = 2400] = process.argv.slice(2).map(Number);
+const [cLat = 50.7625, cLon = 72.3200, widthM = 2600] = process.argv.slice(2).map(Number);
 const M_PER_DEG_LAT = 111320;
 const mPerDegLon = M_PER_DEG_LAT * Math.cos((cLat * Math.PI) / 180);
 const heightM = (widthM * H) / W;
