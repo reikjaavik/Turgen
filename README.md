@@ -40,4 +40,7 @@ python3 -m http.server 8000
 ```
 и открыть http://localhost:8000 (через `file://` данные не загрузятся).
 
+Офлайн-версия одним файлом: `node scripts/build-single.mjs` → `dist/turgen.html`
+(данные, схема и фото встроены; открывается двойным щелчком, без сервера).
+
 Основа схемы — © участники OpenStreetMap (ODbL), см. `scripts/build-base-map.mjs`.

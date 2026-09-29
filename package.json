@@ -6,9 +6,11 @@
   "scripts": {
     "validate": "node scripts/validate-data.mjs",
     "base-map": "node scripts/build-base-map.mjs",
-    "photos": "node scripts/prepare-photos.mjs"
+    "photos": "node scripts/prepare-photos.mjs",
+    "single": "node scripts/build-single.mjs"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "sharp": "^0.33.5"
   }
 }
