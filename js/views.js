@@ -66,9 +66,11 @@ export function decadeView(decadeParam) {
   const ppl = peopleInDecade(decade);
   const pls = db.places.filter((pl) => placeInDecade(pl, decade));
   const stats = d.population ?? [];
+  const era = db.eras.find((e) => e.decade === decade);
   const html = page(`
     <p class="crumbs">🗺 ${esc(t('nav.map'))}</p>
     <h1 class="decade-title">${esc(decadeLabel(d))}</h1>
+    ${era ? `<section class="section era"><h3>🏘 ${esc(t('recon.section'))}: ${text(era.title)}</h3><p>${text(era.text)} ${sources(era.sources)}</p><p class="muted small">${text(db.erasNote)}</p></section>` : ''}
     <section class="section"><h3>${esc(t('panel.population'))}</h3>${stats.length
       ? `<ul>${stats.map((s) => `<li>${s.year ? `<strong>${s.year}:</strong> ` : ''}${text(s.text)} ${sources(s.sources)}</li>`).join('')}</ul>` : empty()}</section>
     <section class="section"><h3>${esc(t('panel.events'))}</h3>${evs.length

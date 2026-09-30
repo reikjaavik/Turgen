@@ -31,6 +31,54 @@
    "title": "Overture Maps — контуры зданий (Microsoft ML Buildings и OpenStreetMap), выпуск 2026-09-23",
    "url": "https://overturemaps.org",
    "note": "основа схемы: здания аула; лицензия ODbL"
+  },
+  {
+   "id": "nurkz-kystau",
+   "short": "nur.kz, «Қыстау»",
+   "title": "«Қыстау: что собой представляло зимнее кочевье казахов» — nur.kz",
+   "url": "https://www.nur.kz/kaleidoscope/2049486-qystau-chto-soboy-predstavlyalo-zimnee-kocheve-kazahov/",
+   "note": "зимовки казахов: дома из глины, дёрна, камня-плитняка"
+  },
+  {
+   "id": "ehistory-yurt",
+   "short": "e-history.kz, «Казахская юрта»",
+   "title": "«Казахская юрта – дом без углов» — e-history.kz",
+   "url": "https://e-history.kz/ru/news/show/6295"
+  },
+  {
+   "id": "cyberleninka-omsk",
+   "short": "КиберЛенинка, «Омская „Нахаловка“»",
+   "title": "«Омская „Нахаловка“: землянки, избы, бараки и каменные (кирпичные) постройки» — КиберЛенинка",
+   "url": "https://cyberleninka.ru/article/n/omskaya-nahalovka-zemlyanki-izby-baraki-i-kamennye-kirpichnye-postroyki",
+   "note": "жилища переселенцев: от землянок к избам"
+  },
+  {
+   "id": "ehistory-sedentary",
+   "short": "e-history.kz, «Массовая седентаризация казахов»",
+   "title": "«Массовая седентаризация казахов как результат голода 1929–1932 гг.» — e-history.kz",
+   "url": "https://e-history.kz/ru/e-resources/show/13350",
+   "note": "землянки, полуземлянки и саманные дома осевших казахов"
+  },
+  {
+   "id": "ehistory-kolkhoz",
+   "short": "e-history.kz, «Казахстанская трагедия»",
+   "title": "«Казахстанская трагедия в исследовании французского историка. Часть II» — e-history.kz",
+   "url": "https://e-history.kz/ru/seo-materials/show/28930",
+   "note": "стационарные посёлки «по типу деревень», колхозно-товарные фермы"
+  },
+  {
+   "id": "kazgazeta-tselina",
+   "short": "Kazgazeta, «70 лет с начала освоения целины»",
+   "title": "«70 лет с начала освоения целины» — Мысль / Kazgazeta.kz",
+   "url": "https://mysl.kazgazeta.kz/news/16201",
+   "note": "1954: палатки, землянки, вагончики, щитовые дома"
+  },
+  {
+   "id": "totalarch-village",
+   "short": "Totalarch, «Архитектура советского села 1955–1970»",
+   "title": "«Архитектура советского села. 1955—1970» — Архитектура СССР (Totalarch)",
+   "url": "https://ussr.totalarch.com/general_history_architecture/1955_1970/village",
+   "note": "центральные усадьбы совхозов Целиноградской области"
   }
  ]
 }

@@ -1,5 +1,6 @@
 // Собирает офлайн-версию сайта в один файл dist/turgen.html: стили, код, данные, схема и фото — внутри.
 // Такой файл открывается двойным щелчком, без веб-сервера и без интернета.
+// Замены — функциями: в минифицированном коде встречаются `$&`, `$'`, которые String.replace иначе подставит.
 // Запуск: node scripts/build-single.mjs
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { build } from 'esbuild';
@@ -48,10 +49,11 @@ new MutationObserver((list) => {
 const js = await build({ entryPoints: [new URL('js/app.js', root).pathname], bundle: true, format: 'iife', write: false, minify: true });
 const css = read('css/style.css');
 let html = read('index.html')
-  .replace('<link rel="stylesheet" href="css/style.css">', `<style>${css}</style>`)
-  .replace('<link rel="stylesheet" href="vendor/maplibre-gl/maplibre-gl.css">', `<style>${read('vendor/maplibre-gl/maplibre-gl.css')}</style>`)
+  .replace('<link rel="stylesheet" href="css/style.css">', () => `<style>${css}</style>`)
+  .replace('<link rel="stylesheet" href="vendor/maplibre-gl/maplibre-gl.css">', () => `<style>${read('vendor/maplibre-gl/maplibre-gl.css')}</style>`)
   .replace('<script src="vendor/maplibre-gl/maplibre-gl.js"></script>', () => `<script>${read('vendor/maplibre-gl/maplibre-gl.js').replace(/<\/script/gi, '<\\/script')}</script>`)
-  .replace('<script type="module" src="js/app.js"></script>',
+  .replace(/<script type="importmap">.*?<\/script>\n?/s, '') // three.js уже в бандле
+  .replace('<script type="module" src="js/app.js"></script>', () =>
     `<script>${prelude.replace(/<\/script/gi, '<\\/script')}</script>\n<script>${js.outputFiles[0].text.replace(/<\/script/gi, '<\\/script')}</script>`);
 
 mkdirSync(new URL('dist/', root), { recursive: true });

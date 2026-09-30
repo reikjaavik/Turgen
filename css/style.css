@@ -422,8 +422,9 @@ body[data-drawer="closed"] .drawer { display: none; }
 
 /* ---------- 3D-сцена ---------- */
 .map3d { position: absolute; inset: 0; }
-body[data-stage="3d"] #map { display: none; }
-body[data-stage="2d"] .map3d, body[data-stage="2d"] .only-3d { display: none; }
+body[data-stage="3d"] #map, body[data-stage="3d"] .recon, body[data-stage="3d"] .only-village { display: none; }
+body[data-stage="2d"] .map3d, body[data-stage="2d"] .only-3d, body[data-stage="2d"] .recon, body[data-stage="2d"] .only-village { display: none; }
+body[data-stage="village"] #map, body[data-stage="village"] .map3d, body[data-stage="village"] .only-3d { display: none; }
 .stage-decade, .stage-tools, .unmarked, .legend, .stage-hint, .map-credit, .drawer-open { z-index: 2; }
 .maplibregl-canvas.marking { cursor: crosshair; }
 #map.past .base-buildings path { opacity: .3; }
@@ -448,3 +449,29 @@ body[data-stage="2d"] .map3d, body[data-stage="2d"] .only-3d { display: none; }
 .m3d.type-farm, .m3d.type-industry, .m3d.type-building { --c: var(--t-agro); }
 .m3d.type-memorial { --c: var(--t-war); }
 .m3d.type-village { --c: var(--accent); }
+
+/* ---------- вид села (реконструкция) ---------- */
+.recon { position: absolute; inset: 0; overflow: hidden; }
+.recon canvas { display: block; touch-action: none; }
+.recon canvas.marking { cursor: crosshair; }
+.recon-labels { position: absolute; inset: 0; pointer-events: none; }
+.recon-label {
+  position: absolute; left: 0; top: 0; pointer-events: auto; cursor: pointer; white-space: nowrap;
+  font: 600 13px system-ui, sans-serif; color: var(--ink); border: 0;
+  background: color-mix(in srgb, var(--surface) 90%, transparent); padding: 2px 8px; border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.recon-label::after { content: ""; position: absolute; left: 50%; bottom: -5px; margin-left: -5px; border: 5px solid transparent; border-bottom: 0; border-top-color: color-mix(in srgb, var(--surface) 90%, transparent); }
+.recon-label.hl { background: var(--accent); color: var(--accent-ink); }
+.recon-label.hl::after { border-top-color: var(--accent); }
+.recon-label.pulse { animation: pulse-l 1.4s ease-in-out infinite; }
+@keyframes pulse-l { 50% { transform-origin: bottom; box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent); } }
+.recon-label.draft { background: var(--surface); outline: 2px dashed var(--focus); pointer-events: none; }
+.era-note {
+  position: absolute; left: 50%; top: 12px; transform: translateX(-50%); margin: 0; z-index: 2; max-width: min(560px, 70%);
+  background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 12px; font-size: .88rem; text-align: center;
+}
+.section.era { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.section.era h3 { text-transform: none; letter-spacing: 0; color: var(--ink); }
+@media (max-width: 800px) { .era-note { top: auto; bottom: calc(46% + 60px); max-width: 90%; font-size: .8rem; } }

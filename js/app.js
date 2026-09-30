@@ -6,9 +6,16 @@ import * as Mark from './mark.js';
 import { buildKml } from './kml.js';
 import * as Map2d from './map.js';
 import * as Map3d from './map3d.js';
+import * as Recon from './recon/scene.js';
 
-// Сцена: 3D (MapLibre, нужен WebGL) или запасная 2D-схема (SVG).
-const Stage = Map3d.supported() ? Map3d : Map2d;
+// Сцены: «Вид села» — 3D-реконструкция по периодам (three.js); «Карта» — схема MapLibre
+// (или запасная SVG-схема без WebGL). По умолчанию — вид села, если есть WebGL.
+const MAP = Map3d.supported() ? Map3d : Map2d;
+const ENGINES = { village: Recon, map: MAP };
+const CONTAINERS = { village: '#recon', map: MAP === Map3d ? '#map3d' : '#map' };
+let mode = Recon.supported() ? 'village' : 'map';
+let Stage = ENGINES[mode];
+const started = new Set();
 
 const $ = (sel) => document.querySelector(sel);
 const view = $('#view');
@@ -49,10 +56,16 @@ function applyFocus() {
     places: db.places,
     isVisible: (pl) => placeInDecade(pl, decade),
     today: decade >= 2000,
+    decade,
     highlight: f?.highlight ?? [],
     pulse: f?.pulse ?? null,
   });
   $('#stage-decade').textContent = decadeLabel(decadeOf(decade));
+  // В «Виде села» — подпись реконструкции периода.
+  const era = db.eras.find((e) => e.decade === decade);
+  const note = $('#era-note');
+  note.hidden = mode !== 'village' || !era;
+  if (era) note.innerHTML = `<strong>${esc(t('recon.label'))}:</strong> ${text(era.title)} · <a href="#/map/${decade}">${esc(t('recon.more'))}</a>`;
   document.querySelectorAll('#timeline a').forEach((a) => {
     if (+a.dataset.decade === decade) a.setAttribute('aria-current', 'true');
     else a.removeAttribute('aria-current');
@@ -66,7 +79,7 @@ function applyFocus() {
     + `<li class="mark-link"><a href="#/mark">📍 ${esc(t('mark.title'))}</a></li>`;
 
   // Легенда — только когда на схеме есть отмеченные объекты кроме центра аула.
-  $('#legend').hidden = !db.places.some((pl) => pl.lat != null && pl.type !== 'village' && placeInDecade(pl, decade));
+  $('#legend').hidden = mode === 'village' || !db.places.some((pl) => pl.lat != null && pl.type !== 'village' && placeInDecade(pl, decade));
 
   const marking = !!state.current?.marking;
   Stage.setDrafts(marking ? Mark.getMarks() : {});
@@ -137,19 +150,32 @@ function stepDecade(delta) {
   location.hash = `#/map/${db.decades[i].decade}`;
 }
 
+// Переключение сцены: «Вид села» ⇄ «Карта». Вторая сцена запускается при первом переключении.
+async function useStage(m) {
+  mode = m;
+  Stage = ENGINES[m];
+  document.body.dataset.stage = m === 'village' ? 'village' : MAP === Map3d ? '3d' : '2d';
+  if (!started.has(m)) {
+    started.add(m);
+    await Stage.initStage($(CONTAINERS[m]), {
+      onSelect: (pl) => { location.hash = link.place(pl.id); },
+      label: (pl) => plain(pl.short ?? pl.name),
+      placeById: (id) => db.byId.place.get(id),
+      places: db.places,
+    });
+  }
+  const btn = $('[data-zoom="mode"]');
+  btn.textContent = m === 'village' ? '🗺' : '🏘';
+  btn.title = btn.ariaLabel = t(m === 'village' ? 'recon.toMap' : 'recon.toVillage');
+}
+
 async function init() {
   await loadDicts();
   await loadAll();
   renderStatic();
   renderTimeline();
   setDrawer(defaultDrawer());
-  const use3d = Stage === Map3d;
-  document.body.dataset.stage = use3d ? '3d' : '2d';
-  await Stage.initStage(use3d ? $('#map3d') : $('#map'), {
-    onSelect: (pl) => { location.hash = link.place(pl.id); },
-    label: (pl) => plain(pl.short ?? pl.name),
-    placeById: (id) => db.byId.place.get(id),
-  });
+  await useStage(mode);
   await render();
 
   window.addEventListener('hashchange', render);
@@ -160,6 +186,8 @@ async function init() {
     const z = e.target.closest('[data-zoom]');
     if (z) {
       if (z.dataset.zoom === 'view') z.textContent = Stage.toggle3d() ? '2D' : '3D';
+      else if (z.dataset.zoom === 'mode') useStage(mode === 'village' ? 'map' : 'village').then(applyFocus);
+      else if (z.dataset.zoom === 'overview' && Stage.overview) Stage.overview();
       else ({ in: () => Stage.zoomBy(1.5), out: () => Stage.zoomBy(1 / 1.5), reset: () => Stage.resetZoom() })[z.dataset.zoom]();
     }
     const sel = e.target.closest('[data-mark-select]');
@@ -213,7 +241,7 @@ async function init() {
   const stage = $('#stage');
   stage.addEventListener('touchstart', (e) => { x0 = e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
   stage.addEventListener('touchend', (e) => {
-    if (x0 == null || state.current?.marking || document.body.dataset.stage === '3d') return;
+    if (x0 == null || state.current?.marking || document.body.dataset.stage !== '2d') return;
     const dx = e.changedTouches[0].clientX - x0;
     // Свайп листает десятилетия, только если схема не приближена (иначе это перетаскивание).
     if (Math.abs(dx) > 60 && $('#map').style.getPropertyValue('--k') <= 1) stepDecade(dx < 0 ? 1 : -1);
