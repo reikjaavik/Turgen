@@ -3,6 +3,7 @@ import { db, loadAll, placeInDecade, decadeOf } from './store.js';
 import { esc, text, plain, sources, decadeLabel, link } from './ui.js';
 import * as V from './views.js';
 import * as Mark from './mark.js';
+import { buildKml } from './kml.js';
 import * as Map2d from './map.js';
 import * as Map3d from './map3d.js';
 
@@ -171,6 +172,16 @@ async function init() {
       navigator.clipboard?.writeText(json).then(() => { e.target.textContent = t('mark.copied'); }, () => {});
       view.querySelector('.mark-json')?.select();
     }
+  });
+  // Выгрузка мест для Google Earth: KML собирается из тех же данных, что и сайт.
+  $('#kml-download').addEventListener('click', () => {
+    const kml = buildKml({ places: db.places, eventsById: db.byId.event, eventPeople: db.eventPeople, sources: db.sources });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' }));
+    a.download = 'turgen.kml';
+    document.body.append(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   });
   $('#drawer-close').addEventListener('click', () => setDrawer('closed'));
   $('#drawer-open').addEventListener('click', () => setDrawer(defaultDrawer()));

@@ -105,5 +105,6 @@
   "legend.economy": "Хозяйство и производство",
   "legend.memory": "Память",
   "legend.village": "Центр аула",
-  "map.heights": "высоты зданий условные"
+  "map.heights": "высоты зданий условные",
+  "kml.title": "Скачать места для Google Earth (KML)"
 }
