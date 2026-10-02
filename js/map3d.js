@@ -1,6 +1,6 @@
 // 3D-сцена на MapLibre GL (vendor/maplibre-gl, подключается как глобальный maplibregl).
 // Тот же интерфейс, что у 2D-схемы (map.js): initStage, setFocus, setDrafts, setMapClick, zoomBy, resetZoom.
-// Основа — assets/map/base.geojson (дороги, река, застройка — OSM; здания — Overture Maps).
+// Основа — assets/map/base.geojson (река, поля — OSM; улицы, здания, кварталы, участки — генеральный план 2020; здания вне плана — Overture Maps).
 // Высоты зданий условные (по площади): реальных высот в данных нет.
 
 const VILLAGE = [[72.3118, 50.7545], [72.3300, 50.7700]];
@@ -33,6 +33,11 @@ export async function initStage(container, options) {
         { id: 'bg', type: 'background', paint: { 'background-color': css('--land') } },
         { id: 'farmland', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'farmland'], paint: { 'fill-color': css('--farm') } },
         { id: 'residential', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'residential'], paint: { 'fill-color': css('--built'), 'fill-opacity': 0.55 } },
+        { id: 'zones', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'zone'],
+          paint: { 'fill-color': ['match', ['get', 'zone'], 'cemetery', css('--zone-cemetery'), css('--zone-industrial')] } },
+        { id: 'quarters', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'quarter'], paint: { 'fill-color': css('--quarter') } },
+        { id: 'parcels', type: 'line', source: 'base', filter: ['==', ['get', 'kind'], 'parcel'], minzoom: 15,
+          paint: { 'line-color': css('--parcel'), 'line-width': 0.7 } },
         { id: 'river', type: 'line', source: 'base', filter: ['==', ['get', 'kind'], 'river'], paint: { 'line-color': css('--river'), 'line-width': ['interpolate', ['linear'], ['zoom'], 13, 3, 17, 9] }, layout: { 'line-cap': 'round', 'line-join': 'round' } },
         { id: 'roads', type: 'line', source: 'base', filter: ['==', ['get', 'kind'], 'road'],
           paint: { 'line-color': ['match', ['get', 'road'], 'major', css('--road-major'), css('--road')],

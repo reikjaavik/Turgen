@@ -70,5 +70,12 @@ python3 -m http.server 8000
 Офлайн-версия одним файлом: `node scripts/build-single.mjs` → `dist/turgen.html`
 (данные, схема и фото встроены; открывается двойным щелчком, без сервера).
 
-Основа схемы — © участники OpenStreetMap (дороги, река, застройка) и контуры зданий Overture Maps
-(Microsoft ML Buildings + OSM), лицензия ODbL; см. `scripts/build-base-map.mjs` и `data/raw/`.
+Основа схемы — генеральный план с. Турген (ТОО «Колдау», 2020, лист ГП-3, существующее положение): здания, кварталы,
+участки; улицы — оси OpenStreetMap, выровненные по коридорам плана; там, где здания на плане не показаны, остаются
+контуры Overture Maps (Microsoft ML Buildings + OSM). Река и поля — © участники OpenStreetMap, лицензия ODbL.
+См. `scripts/build-base-map.mjs`, `scripts/genplan/` и `data/raw/`.
+
+Пересборка основы по плану: `scripts/genplan/dump-dwg.mjs` (DWG → JSON, LibreDWG) → `python scripts/genplan/extract.py gp3.json`
+(привязка к местности, слои плана → `data/raw/genplan-2020.geojson`) → `node scripts/build-base-map.mjs`.
+Привязка: план в условных метрах, повёрнут на ≈1°; подгонка по контурам зданий (282 из 363 совпали с Overture, ср. кв. невязка ≈3,8 м).
+Проектная застройка плана (новые кварталы на юго-востоке) на схему не выносится.

@@ -14,6 +14,10 @@
   --building: #a48b68;
   --road-major: #b6a98d;
   --road: #cbbfa4;
+  --quarter: #e4dcc3;
+  --parcel: #c9bd9f;
+  --zone-cemetery: #cfd6bd;
+  --zone-industrial: #ddd4c0;
   --focus: #1f5fbf;
   --t-osnovanie: #8a6a2f;
   --t-agro: #5f7d2a;
@@ -40,6 +44,10 @@
     --building: #8c7a5a;
     --road-major: #6c644f;
     --road: #55503f;
+    --quarter: #3a362b;
+    --parcel: #4a4435;
+    --zone-cemetery: #3b4333;
+    --zone-industrial: #403b2f;
     --focus: #7fb0ff;
     --t-osnovanie: #d0ad6a;
     --t-agro: #a8c56d;
@@ -292,6 +300,10 @@ body[data-drawer="closed"] .drawer { display: none; }
 .base-farmland path { fill: var(--farm); stroke: none; }
 .base-residential path { fill: var(--built); stroke: none; opacity: .55; }
 .base-river path { fill: none; stroke: var(--river); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.base-zones path { fill: var(--zone-industrial); stroke: none; }
+.base-zones .zone-cemetery { fill: var(--zone-cemetery); }
+.base-quarters path { fill: var(--quarter); stroke: none; }
+.base-parcels path { fill: none; stroke: var(--parcel); stroke-width: .6; vector-effect: non-scaling-stroke; }
 .base-roads path { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke: var(--road); vector-effect: non-scaling-stroke; }
 .base-roads .road-major { stroke: var(--road-major); stroke-width: 5; }
 .base-roads .road-mid { stroke-width: 3.5; }
