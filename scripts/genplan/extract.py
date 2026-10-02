@@ -18,6 +18,7 @@ import json, re, sys, collections
 import numpy as np
 from scipy import ndimage
 from scipy.spatial import cKDTree
+from PIL import Image, ImageDraw
 
 SRC = sys.argv[1]
 OUT = sys.argv[2] if len(sys.argv) > 2 else 'data/raw/genplan-2020.geojson'
@@ -210,6 +211,11 @@ EXPL = {'Акимат': 1, 'Почта': 2, 'Школа': 3, 'Интернат':
         'Торговый центр': 9, 'ТОО "Поиск"': 10, 'Кафе': 11, 'Магазин': 12, 'футбольное поле': 14, 'Нефтебаза': 17}
 
 
+def short_label(text):
+    """«Школа 2К» → «Школа»: буквенно-цифровые коды на плане (2К, К, КЖ…) в легенде не расшифрованы и не передаются."""
+    return re.sub(r'\s+\d?К[ЖН]?$', '', text).strip()
+
+
 def expl_key(text):
     for k in EXPL:
         if text.lower().startswith(k.lower()): return k
@@ -240,7 +246,7 @@ for i, p in enumerate(bpolys):
     props = {'src': 'genplan'}
     if b_label[i]:
         k = expl_key(b_label[i])
-        props['label'] = b_label[i]
+        props['label'] = short_label(b_label[i])
         if k: props['num'] = EXPL[k]
     if b_ruin[i]:
         feat('ruin', {'type': 'Polygon', 'coordinates': [ll(p) + [ll(p[:1])[0]]]}, **props)
@@ -248,34 +254,62 @@ for i, p in enumerate(bpolys):
     plan_kept.append(i)
 
 # Контуры Overture, которых нет на плане, остаются; совпавшие с планом заменяются контуром плана.
-def overlaps(op, idxs):
-    c = op.mean(0)
-    if len(idxs) == 0: return False
-    for i in idxs:
-        if pip(bpolys[i], c.reshape(1, 2))[0] or pip(op, bcent[i].reshape(1, 2))[0]: return True
-        # пересечение по вершинам
-        if pip(bpolys[i], op).any() or pip(op, bpolys[i]).any(): return True
-    return False
+def covered_fraction(op, idxs):
+    """Какая доля площади контура Overture закрыта зданиями плана (растр 0,5 м по габариту контура)."""
+    if len(idxs) == 0: return 0.0
+    mn, mx = op.min(0) - 1, op.max(0) + 1
+    w, h = max(2, int((mx[0] - mn[0]) / 0.5)), max(2, int((mx[1] - mn[1]) / 0.5))
+    def mask(poly):
+        im = Image.new('L', (w, h), 0)
+        ImageDraw.Draw(im).polygon([((x - mn[0]) / 0.5, (mx[1] - y) / 0.5) for x, y in poly], fill=255)
+        return np.array(im) > 0
+    mo = mask(op)
+    if mo.sum() == 0: return 0.0
+    mp = np.zeros_like(mo)
+    for i in idxs: mp |= mask(bpolys[i])
+    return float((mo & mp).sum() / mo.sum())
+
 
 tree_b = cKDTree(bcent)
+bl_idx = []  # (номер объекта в features, контур в локальных метрах) для всех зданий
 n_ov_dropped = 0
 for op in ov_polys:
     c = op.mean(0)
     near = tree_b.query_ball_point(c, r=60)
-    if overlaps(op, near):
+    if covered_fraction(op, near) >= 0.4:
         n_ov_dropped += 1
         continue
     feat('building', {'type': 'Polygon', 'coordinates': [ll(op) + [ll(op[:1])[0]]]}, src='overture', _a=abs(area(op)))
+    bl_idx.append((len(features) - 1, op))
 for i in plan_kept:
     p = bpolys[i]
     props = {'src': 'genplan', '_a': abs(area(p))}
     if b_label[i]:
         k = expl_key(b_label[i])
-        props['label'] = b_label[i]
+        props['label'] = short_label(b_label[i])
         if k: props['num'] = EXPL[k]
     feat('building', {'type': 'Polygon', 'coordinates': [ll(p) + [ll(p[:1])[0]]]}, **props)
+    bl_idx.append((len(features) - 1, p))
 print(f'здания: плана {len(plan_kept)} (+{n_ruin} развалин), Overture заменено планом {n_ov_dropped}, '
       f'оставлено Overture {sum(1 for f in features if f["properties"].get("src") == "overture")}', file=sys.stderr)
+
+# Подписи общественных зданий на плане стоят на штриховках, а не на контурах «здание»: подпись достаётся тому зданию
+# (плана или Overture), внутри которого она стоит, иначе ближайшему не дальше 35 м.
+bl_c = np.array([p.mean(0) for _, p in bl_idx])
+used = {features[i]['properties'].get('label') for i, _ in bl_idx if features[i]['properties'].get('label')}
+for text, m in labels:
+    k = expl_key(text)
+    if not k or text in used and k not in ('магазин', 'Магазин'): continue
+    inside = [n for n, (_, p) in enumerate(bl_idx) if pip(p, m.reshape(1, 2))[0]]
+    if inside: j = min(inside, key=lambda n: abs(area(bl_idx[n][1])))
+    else:
+        dd = np.hypot(*(bl_c - m).T)
+        j = int(dd.argmin()) if dd.min() < 35 else None
+    if j is None: continue
+    pr = features[bl_idx[j][0]]['properties']
+    if 'label' not in pr:
+        pr['label'], pr['num'] = short_label(text), EXPL[k]
+        used.add(text)
 
 # ───────────────────────── кварталы и красные линии ─────────────────────────
 red = [e for e in ents if e['layer'] == '__RED_LINE']
@@ -296,7 +330,6 @@ CELL = 1.0
 allp = np.vstack([red_pts[12], red_pts[11], red_pts[29]])
 x0, y0 = allp.min(0) - 20
 x1, y1 = allp.max(0) + 20
-from PIL import Image, ImageDraw
 Wc, Hc = int((x1 - x0) / CELL) + 1, int((y1 - y0) / CELL) + 1
 
 
@@ -350,11 +383,20 @@ def rdp(pts, tol):
 def length(p): return float(np.hypot(*np.diff(p, axis=0).T).sum())
 
 
+def dist_to_line(pt, line):
+    """Расстояние от точки до ломаной (по отрезкам)."""
+    a, b = line[:-1], line[1:]
+    ab = b - a
+    t = np.clip(((pt - a) * ab).sum(1) / np.maximum((ab * ab).sum(1), 1e-9), 0, 1)
+    return float(np.hypot(*(a + ab * t[:, None] - pt).T).min())
+
+
 def dm(pt):
     r, c = int((y1 - pt[1]) / CELL), int((pt[0] - x0) / CELL)
     return dist_map[r, c] if 0 <= r < Hc and 0 <= c < Wc else 0.0
 
 
+street_labels = [(re.sub(r'^ул\.\s*', 'ул. ', t), m) for t, m in labels if t.lower().startswith('ул.')]
 n_streets = 0
 shift_stats = []
 for m in re.finditer(r'<way id="(\d+)"[^>]*>([\s\S]*?)</way>', xml):
@@ -384,7 +426,11 @@ for m in re.finditer(r'<way id="(\d+)"[^>]*>([\s\S]*?)</way>', xml):
     else:
         r = rdp(xy, 1.0)
     props = dict(road=cls, src='genplan' if (cls in ('street', 'minor') and inside) else 'osm', hw=hw)
-    if tags.get('name'): props['name'] = tags['name']
+    # Название — только русское, с плана (подписи «ул.Женис»); казахские названия OSM не переносятся.
+    if street_labels:
+        dl = [(dist_to_line(lm, r), nm) for nm, lm in street_labels]
+        dmin, nm = min(dl)
+        if dmin < 25: props['name'] = nm
     feat('road', {'type': 'LineString', 'coordinates': ll(r)}, **props)
     n_streets += 1
 print(f'улицы: {n_streets} осей; сдвиг по плану: среднее {np.mean(shift_stats):.1f} м, максимум {np.max(shift_stats):.1f} м', file=sys.stderr)
@@ -413,9 +459,9 @@ for e in ents:
 # ───────────────────────── подписанные объекты и улицы ─────────────────────────
 for text, m in labels:
     k = expl_key(text)
-    if k: feat('poi', {'type': 'Point', 'coordinates': ll(m)[0]}, name=text, num=EXPL[k])
+    if k: feat('poi', {'type': 'Point', 'coordinates': ll(m)[0]}, name=short_label(text), num=EXPL[k])
     elif text.lower().startswith('ул.'): feat('streetlabel', {'type': 'Point', 'coordinates': ll(m)[0]}, name=text)
-    elif text in ('ТОО "Поиск" 2К',) or text.startswith('ТОО'): feat('poi', {'type': 'Point', 'coordinates': ll(m)[0]}, name=text, num=10)
+    elif text in ('ТОО "Поиск" 2К',) or text.startswith('ТОО'): feat('poi', {'type': 'Point', 'coordinates': ll(m)[0]}, name=short_label(text), num=10)
 
 for f in features:
     f['properties'].pop('_a', None) if False else None

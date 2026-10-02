@@ -6,7 +6,7 @@ async function json(path) {
 }
 
 export const db = {
-  project: null, decades: [], intro: [], eras: [], erasNote: null, events: [], people: [], groups: [], places: [], sources: new Map(),
+  project: null, decades: [], intro: [], eras: [], erasNote: null, overlays: [], events: [], people: [], groups: [], places: [], sources: new Map(),
   byId: { event: new Map(), person: new Map(), place: new Map(), group: new Map() },
   eventPeople: new Map(), // id события → люди
   eventPlaces: new Map(), // id события → места
@@ -15,11 +15,12 @@ export const db = {
 };
 
 export async function loadAll() {
-  const [project, dec, ev, pp, pl, src, er] = await Promise.all([
+  const [project, dec, ev, pp, pl, src, er, ov] = await Promise.all([
     json('data/project.json'), json('data/decades.json'), json('data/events.json'),
-    json('data/people.json'), json('data/places.json'), json('data/sources.json'), json('data/eras.json'),
+    json('data/people.json'), json('data/places.json'), json('data/sources.json'), json('data/eras.json'), json('data/overlays.json'),
   ]);
   db.eras = er.eras;
+  db.overlays = ov.overlays;
   db.erasNote = er.note;
   db.project = project;
   db.decades = dec.decades;

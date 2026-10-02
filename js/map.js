@@ -6,7 +6,7 @@ const W = 800, H = 560;
 let projection = null; // { minLat, maxLat, minLon, maxLon, mPerPx }
 let svg, baseEl, objectsEl, draftsEl;
 let view = { x: 0, y: 0, w: W, h: H };
-let focus = { places: [], isVisible: () => true, highlight: new Set(), pulse: null };
+let focus = { places: [], isVisible: () => true, highlight: new Set(), pulse: null, overlay: null };
 let drafts = {};
 let opts = { onSelect: () => {}, label: (o) => o.id, onMapClick: null };
 
@@ -33,8 +33,9 @@ export async function initStage(svgEl, options) {
 // Экранный масштаб: насколько схема приближена (1 — вся схема).
 const zoomK = () => W / view.w;
 
-export function setFocus({ places, isVisible, highlight = [], pulse = null, today = false }) {
-  focus = { places, isVisible, highlight: new Set(highlight), pulse };
+export function setFocus({ places, isVisible, highlight = [], pulse = null, today = false, overlay = null }) {
+  focus = { places, isVisible, highlight: new Set(highlight), pulse, overlay };
+  drawOverlay();
   // Современная застройка в прошлых десятилетиях — бледной тенью для ориентира.
   svg.classList.toggle('past', !today);
   drawObjects();
@@ -110,6 +111,17 @@ function setupPanZoom() {
     const p = toSvg(e);
     zoomBy(e.deltaY < 0 ? 1.25 : 0.8, p.x, p.y);
   }, { passive: false });
+}
+
+// Исторический слой (старый план) — картинка поверх основы, в границах по четырём углам.
+function drawOverlay() {
+  baseEl?.querySelector('.map-overlay')?.remove();
+  const ov = focus.overlay;
+  if (!ov || !projection || !baseEl) return;
+  const [tl, , br] = ov.corners.map(([lon, lat]) => project(lat, lon));
+  const img = el('image', { class: 'map-overlay', href: ov.image, x: tl.x.toFixed(1), y: tl.y.toFixed(1),
+    width: (br.x - tl.x).toFixed(1), height: (br.y - tl.y).toFixed(1), opacity: ov.opacity ?? 0.85, preserveAspectRatio: 'none' });
+  baseEl.append(img);
 }
 
 function drawObjects() {

@@ -79,7 +79,7 @@ if (existsSync(GENPLAN)) {
       if (!inView(pts)) continue;
       const road = f.properties.road;
       layers.roads.push(`<path class="road-${road}" d="${d(pts)}"${f.properties.name ? ` data-name="${esc(f.properties.name)}"` : ''}/>`);
-      feat('road', { type: 'LineString', coordinates: ll(pts) }, { road });
+      feat('road', { type: 'LineString', coordinates: ll(pts) }, f.properties.name ? { road, name: f.properties.name } : { road });
     } else if (k === 'building') {
       for (const rings of polyCoords(g)) {
         const pts = flat(rings[0]);

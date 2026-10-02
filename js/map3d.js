@@ -8,7 +8,7 @@ const PITCH_3D = 55, BEARING_3D = -15;
 const EMPTY = { type: 'FeatureCollection', features: [] };
 
 let map, opts, is3d = true, today = false;
-let focus = { places: [], isVisible: () => true, highlight: new Set(), pulse: null };
+let focus = { places: [], isVisible: () => true, highlight: new Set(), pulse: null, overlay: null };
 const markers = new Map(); // id места → { marker, el }
 let draftMarkers = [];
 let labelZoom = 99;
@@ -63,18 +63,51 @@ export async function initStage(container, options) {
   });
   await new Promise((r) => map.on('load', r));
   labelZoom = map.getZoom() + 1;
+  addStreetNames(base);
+  // Панель сворачивается без изменения окна — карту нужно подогнать под новый размер вручную.
+  new ResizeObserver(() => map.resize()).observe(container);
   map.on('zoomend', applyFocus);
   map.on('click', (e) => { if (opts.onMapClick) opts.onMapClick({ lat: e.lngLat.lat, lon: e.lngLat.lng }); });
 }
 
-export function setFocus({ places, isVisible, highlight = [], pulse = null, today: isToday = false }) {
-  focus = { places, isVisible, highlight: new Set(highlight), pulse };
+export function setFocus({ places, isVisible, highlight = [], pulse = null, today: isToday = false, overlay = null }) {
+  focus = { places, isVisible, highlight: new Set(highlight), pulse, overlay };
   today = isToday;
   applyFocus();
 }
 
+// Названия улиц (по генеральному плану) — подписью у середины улицы, видны при приближении.
+let streetEls = [];
+function addStreetNames(base) {
+  for (const f of base.features) {
+    if (f.properties.kind !== 'road' || !f.properties.name) continue;
+    const c = f.geometry.coordinates, mid = c[Math.floor((c.length - 1) / 2)];
+    const el = document.createElement('div');
+    el.className = 'm3d-street';
+    el.textContent = f.properties.name;
+    new window.maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(mid).addTo(map);
+    streetEls.push(el);
+  }
+}
+
+// Исторический слой (старый план): растровая картинка по четырём углам; слой меняется вместе с десятилетием.
+let overlayShown = null;
+function applyOverlay(ov) {
+  const id = ov?.id ?? null;
+  if (id === overlayShown) return;
+  if (overlayShown) { map.removeLayer(`ov-${overlayShown}`); map.removeSource(`ov-${overlayShown}`); }
+  if (ov) {
+    map.addSource(`ov-${id}`, { type: 'image', url: ov.image, coordinates: ov.corners });
+    map.addLayer({ id: `ov-${id}`, type: 'raster', source: `ov-${id}`, paint: { 'raster-opacity': ov.opacity ?? 0.85, 'raster-fade-duration': 300 } }, 'zones-fill');
+  }
+  overlayShown = id;
+}
+
 function applyFocus() {
   if (!map) return;
+  applyOverlay(focus.overlay);
+  const showStreets = map.getZoom() >= labelZoom;
+  for (const el of streetEls) el.classList.toggle('on', showStreets);
   map.setPaintProperty('buildings-3d', 'fill-extrusion-height', today ? ['get', 'h'] : 0);
   map.setPaintProperty('buildings-flat', 'fill-opacity', today ? 0 : 0.3);
   map.setPaintProperty('buildings-3d', 'fill-extrusion-opacity', today ? 0.92 : 0);

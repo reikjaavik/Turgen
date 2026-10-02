@@ -19,7 +19,7 @@ const started = new Set();
 const $ = (sel) => document.querySelector(sel);
 const view = $('#view');
 const lightbox = $('#lightbox');
-const state = { decade: 1900, current: null, drawer: 'open', keepClosed: false };
+const state = { decade: 1900, current: null, drawer: 'open', keepClosed: false, overlayOn: true };
 
 // Маршруты: #/, #/map/1940, #/people, #/people/<id>, #/history/1940, #/events, #/events/<id>,
 // #/places/<id>, #/photos, #/sources, #/tour, #/tour/<тема>/<шаг>, #/mark. Старые ссылки #1940 → #/map/1940.
@@ -51,7 +51,10 @@ function applyFocus() {
   const f = typeof state.current?.focus === 'function' ? state.current.focus(state.decade) : state.current?.focus;
   if (f?.decade != null && decadeOf(f.decade)) state.decade = f.decade;
   const decade = state.decade;
+  // Старый план села — слоем на карте в своих десятилетиях (в «Виде села» его нет).
+  const overlay = mode === 'map' ? db.overlays.find((o) => o.decades.includes(decade)) : null;
   Stage.setFocus({
+    overlay: state.overlayOn ? overlay : null,
     places: db.places,
     isVisible: (pl) => placeInDecade(pl, decade),
     today: decade >= 2000,
@@ -65,6 +68,13 @@ function applyFocus() {
   const note = $('#era-note');
   note.hidden = mode !== 'village' || !era;
   if (era) note.innerHTML = `<strong>${esc(t('recon.label'))}:</strong> ${text(era.title)} · <a href="#/map/${decade}">${esc(t('recon.more'))}</a>`;
+  const ovNote = $('#overlay-note');
+  ovNote.hidden = !overlay;
+  if (overlay) {
+    ovNote.innerHTML = `<strong>${esc(t('overlay.label'))}:</strong> ${text(overlay.title)} (${esc(t('overlay.approx'))}) · `
+      + `<button type="button" class="linklike" data-overlay-toggle>${esc(t(state.overlayOn ? 'overlay.hide' : 'overlay.show'))}</button> · `
+      + `<button type="button" class="linklike" data-photo="${esc(overlay.photo)}">${esc(t('overlay.sheet'))}</button>`;
+  }
   document.querySelectorAll('#timeline a').forEach((a) => {
     if (+a.dataset.decade === decade) a.setAttribute('aria-current', 'true');
     else a.removeAttribute('aria-current');
@@ -189,6 +199,7 @@ async function init() {
       else if (z.dataset.zoom === 'overview' && Stage.overview) Stage.overview();
       else ({ in: () => Stage.zoomBy(1.5), out: () => Stage.zoomBy(1 / 1.5), reset: () => Stage.resetZoom() })[z.dataset.zoom]();
     }
+    if (e.target.closest('[data-overlay-toggle]')) { state.overlayOn = !state.overlayOn; applyFocus(); }
     const sel = e.target.closest('[data-mark-select]');
     if (sel) { Mark.select(sel.dataset.markSelect); render(); }
     const del = e.target.closest('[data-mark-remove]');

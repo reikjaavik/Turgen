@@ -9,6 +9,7 @@ const { people, groups } = load('data/people.json');
 const { places } = load('data/places.json');
 const { sources } = load('data/sources.json');
 const project = load('data/project.json');
+const { overlays } = load('data/overlays.json');
 
 const errors = [];
 const err = (m) => errors.push(m);
@@ -120,9 +121,23 @@ for (const f of readdirSync(new URL('../assets/photos/', import.meta.url))) {
   if (f.endsWith('.jpg') && !usedPhotos.has(f.slice(0, -4))) err(`assets/photos/${f}: файл нигде не используется`);
 }
 
+// Исторические слои карты (старые планы): десятилетия, углы, картинка, фото-документ и источники.
+const overlayIds = ids(overlays, 'overlays');
+for (const o of overlays) {
+  const w = `overlays.${o.id}`;
+  if (!hasText(o.title) || !hasText(o.text)) err(`${w}: нет названия или пояснения`);
+  checkSources(w, o.sources);
+  if (!Array.isArray(o.decades) || !o.decades.length) err(`${w}: нет десятилетий`);
+  for (const d of o.decades ?? []) if (!decades.some((x) => x.decade === d)) err(`${w}: нет десятилетия ${d}`);
+  if (!Array.isArray(o.corners) || o.corners.length !== 4 || o.corners.some((c) => !(c.length === 2 && c[0] > 72 && c[0] < 73 && c[1] > 50 && c[1] < 51))) err(`${w}: углы — четыре точки [lon, lat]`);
+  if (!existsSync(new URL(`../${o.image}`, import.meta.url))) err(`${w}: нет файла ${o.image}`);
+  if (o.photo && !usedPhotos.has(o.photo)) err(`${w}: фото ${o.photo} нет в фотоархиве`);
+}
+void overlayIds;
+
 // Внешних ссылок на сайте быть не должно: названия источников — только текстом.
 const externalUrl = /https?:\/\/(?!localhost)/;
-for (const f of ['data/decades.json', 'data/events.json', 'data/people.json', 'data/places.json', 'data/sources.json', 'data/project.json', 'data/eras.json', 'index.html']) {
+for (const f of ['data/decades.json', 'data/events.json', 'data/people.json', 'data/places.json', 'data/sources.json', 'data/project.json', 'data/eras.json', 'data/overlays.json', 'index.html']) {
   const text = readFileSync(new URL(`../${f}`, import.meta.url), 'utf8').replace(/xmlns='?"?[^'" ]*'?"?/g, '');
   if (externalUrl.test(text)) err(`${f}: внешняя ссылка (адреса сайтов на сайте не нужны)`);
 }

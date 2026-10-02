@@ -110,5 +110,10 @@
   "recon.more": "подробнее",
   "recon.section": "Как выглядело село",
   "recon.toMap": "Переключить на карту",
-  "recon.toVillage": "Вид села (реконструкция)"
+  "recon.toVillage": "Вид села (реконструкция)",
+  "overlay.label": "Старый план",
+  "overlay.hide": "скрыть",
+  "overlay.show": "показать",
+  "overlay.sheet": "лист",
+  "overlay.approx": "год не указан, привязка приблизительная"
 }
