@@ -33,10 +33,10 @@ export async function initStage(container, options) {
       layers: [
         { id: 'bg', type: 'background', paint: { 'background-color': css('--land') } },
         { id: 'farmland', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'farmland'], paint: { 'fill-color': css('--farm') } },
-        { id: 'residential', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'residential'], paint: { 'fill-color': css('--built'), 'fill-opacity': 0.55 } },
+        { id: 'residential', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'residential'], paint: { 'fill-color': css('--street-surface') } },
         { id: 'zones', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'zone'],
           paint: { 'fill-color': ['match', ['get', 'zone'], 'cemetery', css('--zone-cemetery'), css('--zone-industrial')] } },
-        { id: 'quarters', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'quarter'], paint: { 'fill-color': css('--quarter') } },
+        { id: 'quarters', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'quarter'], paint: { 'fill-color': css('--quarter'), 'fill-outline-color': css('--parcel') } },
         { id: 'parcels', type: 'line', source: 'base', filter: ['==', ['get', 'kind'], 'parcel'], minzoom: 15,
           paint: { 'line-color': css('--parcel'), 'line-width': 0.7 } },
         { id: 'river', type: 'line', source: 'base', filter: ['==', ['get', 'kind'], 'river'], paint: { 'line-color': css('--river'), 'line-width': ['interpolate', ['linear'], ['zoom'], 13, 3, 17, 9] }, layout: { 'line-cap': 'round', 'line-join': 'round' } },
