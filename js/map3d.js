@@ -3,7 +3,8 @@
 // Основа — assets/map/base.geojson (река, поля — OSM; улицы, здания, кварталы, участки — генеральный план 2020; здания вне плана — Overture Maps).
 // Высоты зданий условные (по площади): реальных высот в данных нет.
 
-const VILLAGE = [[72.3105, 50.7545], [72.3320, 50.7790]]; // село и площадки МТМ и стоянки к северу от него
+const VILLAGE = [[72.3118, 50.7550], [72.3300, 50.7695]]; // начальный вид: село крупно
+const WHOLE = [[72.3105, 50.7545], [72.3320, 50.7790]]; // весь охват: село и площадки МТМ и стоянки к северу от него
 const PITCH_3D = 55, BEARING_3D = -15;
 const EMPTY = { type: 'FeatureCollection', features: [] };
 
@@ -167,6 +168,7 @@ export function setMapClick(fn) {
 }
 
 export const zoomBy = (f) => map.easeTo({ zoom: map.getZoom() + Math.log2(f) });
+export const overview = () => map.fitBounds(WHOLE, { padding: 30, pitch: is3d ? PITCH_3D : 0, bearing: is3d ? BEARING_3D : 0 });
 export const resetZoom = () => map.fitBounds(VILLAGE, { padding: 30, pitch: is3d ? PITCH_3D : 0, bearing: is3d ? BEARING_3D : 0 });
 export function toggle3d() {
   is3d = !is3d;
