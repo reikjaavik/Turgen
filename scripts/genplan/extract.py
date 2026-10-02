@@ -397,6 +397,7 @@ def dm(pt):
 
 
 street_labels = [(re.sub(r'^ул\.\s*', 'ул. ', t), m) for t, m in labels if t.lower().startswith('ул.')]
+osm_village = []
 n_streets = 0
 shift_stats = []
 for m in re.finditer(r'<way id="(\d+)"[^>]*>([\s\S]*?)</way>', xml):
@@ -431,9 +432,120 @@ for m in re.finditer(r'<way id="(\d+)"[^>]*>([\s\S]*?)</way>', xml):
         dl = [(dist_to_line(lm, r), nm) for nm, lm in street_labels]
         dmin, nm = min(dl)
         if dmin < 25: props['name'] = nm
+    if props['src'] == 'genplan':
+        osm_village.append((r, props))  # улицы села — после сопоставления с сетью, выведенной из кварталов плана
+        continue
     feat('road', {'type': 'LineString', 'coordinates': ll(r)}, **props)
     n_streets += 1
 print(f'улицы: {n_streets} осей; сдвиг по плану: среднее {np.mean(shift_stats):.1f} м, максимум {np.max(shift_stats):.1f} м', file=sys.stderr)
+
+
+# ───────────────────────── улицы: оси промежутков между кварталами плана ─────────────────────────
+# Промежутки между существующими кварталами (ширина до ~34 м) — это улицы и переулки. Берём «замыкание» кварталов
+# (заполняет только узкие промежутки, края кварталов не раздувает) за вычетом самих кварталов и утончаем до осей.
+# Улицы OSM, не совпавшие с этой сетью (вдоль крайних кварталов), добавляются кусками дальше 14 м от неё.
+def thin(img):
+    """Утончение Zhang–Suen."""
+    im = img.astype(np.uint8)
+    changed = True
+    while changed:
+        changed = False
+        for step in (0, 1):
+            q = np.pad(im, 1)
+            P2, P3, P4, P5, P6, P7, P8, P9 = (q[:-2, 1:-1], q[:-2, 2:], q[1:-1, 2:], q[2:, 2:], q[2:, 1:-1], q[2:, :-2], q[1:-1, :-2], q[:-2, :-2])
+            nb = P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9
+            seq = [P2, P3, P4, P5, P6, P7, P8, P9, P2]
+            trans = sum(((seq[i] == 0) & (seq[i + 1] == 1)).astype(np.uint8) for i in range(8))
+            c = ((P2 * P4 * P6 == 0) & (P4 * P6 * P8 == 0)) if step == 0 else ((P2 * P4 * P8 == 0) & (P2 * P6 * P8 == 0))
+            rm = (im == 1) & (nb >= 2) & (nb <= 6) & (trans == 1) & c
+            if rm.any():
+                im[rm] = 0
+                changed = True
+    return im.astype(bool)
+
+
+Qm = raster([red_pts[i] for i in EXISTING_Q])
+rr, cc = np.nonzero(Qm)
+pad = 40
+ra, rb, ca, cb = max(rr.min() - pad, 0), min(rr.max() + pad, Hc), max(cc.min() - pad, 0), min(cc.max() + pad, Wc)
+Qc = Qm[ra:rb, ca:cb]
+RG = 17.0
+dil = ndimage.distance_transform_edt(~Qc) * CELL <= RG
+closed = ndimage.distance_transform_edt(dil) * CELL > RG
+gap = ndimage.binary_opening(closed & ~Qc, iterations=2)
+skel = thin(gap)
+ys_, xs_ = np.nonzero(skel)
+pix = {(int(a), int(b)) for a, b in zip(ys_, xs_)}
+NB8 = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+
+
+def nbrs(q):
+    return [(q[0] + a, q[1] + b) for a, b in NB8 if (q[0] + a, q[1] + b) in pix]
+
+
+deg = {q: len(nbrs(q)) for q in pix}
+nodes = {q for q, dg in deg.items() if dg != 2}
+seen, edges = set(), []
+for st in nodes:
+    for nx_ in nbrs(st):
+        if (st, nx_) in seen:
+            continue
+        path = [st, nx_]
+        seen.add((st, nx_))
+        prev, cur = st, nx_
+        while cur not in nodes:
+            nxt = [q for q in nbrs(cur) if q != prev]
+            if not nxt:
+                break
+            prev, cur = cur, nxt[0]
+            path.append(cur)
+        seen.add((cur, path[-2]))
+        edges.append(path)
+for _ in range(3):  # отсечь короткие отростки (концевая ветка короче 20 м, выходящая из развилки)
+    cnt = collections.Counter()
+    for pth in edges:
+        cnt[pth[0]] += 1
+        cnt[pth[-1]] += 1
+    edges = [pth for pth in edges if not ((cnt[pth[0]] == 1 or cnt[pth[-1]] == 1) and len(pth) * CELL < 20 and (cnt[pth[0]] > 2 or cnt[pth[-1]] > 2))]
+
+
+def to_m(path):
+    return np.array([[x0 + (cb_ + ca + 0.5) * CELL, y1 - (rb_ + ra + 0.5) * CELL] for rb_, cb_ in path])
+
+
+net = []
+for pth in edges:
+    m = to_m(pth)
+    if len(m) < 6:
+        continue
+    m = rdp(m, 2.0)
+    if length(m) >= 20:
+        net.append(m)
+net_pts = np.vstack([resample(m, 3.0) for m in net]) if net else np.zeros((0, 2))
+net_tree = cKDTree(net_pts)
+n_net = 0
+for m in net:
+    props = dict(road='street', src='genplan', hw='gap')
+    if street_labels:
+        dmin, nm = min((dist_to_line(lm, m), nm_) for nm_, lm in street_labels)
+        if dmin < 25: props['name'] = nm
+    feat('road', {'type': 'LineString', 'coordinates': ll(m)}, **props)
+    n_net += 1
+# улицы OSM села — только куски, которых нет в сети
+n_osm = 0
+for r, props in osm_village:
+    pts = resample(r, 4.0)
+    far = net_tree.query(pts)[0] > 14.0 if len(net_pts) else np.ones(len(pts), bool)
+    run = []
+    for pt, f in list(zip(pts, far)) + [(None, False)]:
+        if f:
+            run.append(pt)
+        else:
+            if len(run) >= 5:
+                feat('road', {'type': 'LineString', 'coordinates': ll(np.array(run))}, **props)
+                n_osm += 1
+            run = []
+print(f'улицы села: {n_net} осей между кварталами + {n_osm} кусков по OSM вне этой сети', file=sys.stderr)
 
 # ───────────────────────── участки (ограждения) ─────────────────────────
 n_par = 0

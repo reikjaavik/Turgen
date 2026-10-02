@@ -174,7 +174,7 @@ export function setMapClick(fn) {
   map?.getCanvas().classList.toggle('marking', !!fn);
 }
 
-export const zoomBy = (f) => map.easeTo({ zoom: map.getZoom() + Math.log2(f) });
+export const zoomBy = (f) => map?.easeTo({ zoom: map.getZoom() + Math.log2(f) });
 export const overview = () => map.fitBounds(WHOLE, { padding: 30, pitch: is3d ? PITCH_3D : 0, bearing: is3d ? BEARING_3D : 0 });
 export const resetZoom = () => map.fitBounds(VILLAGE, { padding: 30, pitch: is3d ? PITCH_3D : 0, bearing: is3d ? BEARING_3D : 0 });
 export function toggle3d() {

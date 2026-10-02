@@ -120,6 +120,7 @@ function ribbon(pts, width, material, y) {
   const m = new THREE.Mesh(g, material);
   m.receiveShadow = true;
   material.polygonOffset = true; material.polygonOffsetFactor = -1;
+  material.side = THREE.DoubleSide; // порядок вершин ленты зависит от направления линии — видна с любой стороны
   if (material.map) { material.map = material.map.clone(); material.map.repeat.set(1, 1); material.map.needsUpdate = true; }
   return m;
 }
