@@ -35,7 +35,7 @@ function footprint(f, i) {
 export function prepare(base, places) {
   const feats = base.features;
   const buildings = feats.filter((f) => f.properties.kind === 'building' && f.geometry.type === 'Polygon').map(footprint);
-  const roads = feats.filter((f) => f.properties.kind === 'road').map((f) => ({ road: f.properties.road, since: f.properties.since ?? 1900, name: f.properties.name, oldName: f.properties.oldName, pts: f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)) }));
+  const roads = feats.filter((f) => f.properties.kind === 'road').map((f) => ({ road: f.properties.road, since: f.properties.since ?? 1900, until: f.properties.until, gen: !!f.properties.gen, id: f.properties.id, name: f.properties.name, oldName: f.properties.oldName, pts: f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)) }));
   const river = feats.filter((f) => f.properties.kind === 'river').map((f) => f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)));
   const pl = Object.fromEntries(places.filter((p) => p.lat != null).map((p) => [p.id, { ...toXZ(p.lat, p.lon), place: p }]));
 
@@ -58,6 +58,34 @@ function pickType(mix, key) {
   return Object.keys(mix).at(-1);
 }
 
+// Участки под дома. С 1960-х — современные контуры зданий (Overture/генплан), ближайшие к центру. До 1960-х планировка не известна:
+// «свои логичные улицы» (gen в base.geojson) — дома встают вдоль них по обе стороны, от центра наружу. Дальние участки (на ещё не
+// построенных отрезках улиц) идут после — под юрты, зимовку и палатки на краю села.
+function slotsFor(prep, decade) {
+  if (decade >= 1960) return prep.plots;
+  if (!prep.genSlots) {
+    prep.genSlots = [];
+    for (const r of prep.roads.filter((q) => q.gen)) {
+      const pts = r.pts;
+      let acc = 15, side = 1, k = 0;
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1], b = pts[i], len = Math.hypot(b.x - a.x, b.z - a.z), nx = -(b.z - a.z) / len, nz = (b.x - a.x) / len;
+        for (; acc < len; acc += 15) {
+          // шаг 15 м, стороны чередуются: каждый второй отсчёт — участок, т. е. по дому каждые 30 м на сторону
+          const t = acc / len, h = hash(`${r.id}${k}`);
+          prep.genSlots.push({ id: `${r.id}-${k++}`, x: a.x + (b.x - a.x) * t + nx * 14 * side + (h - 0.5) * 6, z: a.z + (b.z - a.z) * t + nz * 14 * side, rot: -Math.atan2(b.z - a.z, b.x - a.x),
+            w: 9, d: 7, area: 70, h: 4, since: r.since, dist: Math.hypot(a.x - (prep.pl.aul ?? prep.core).x, a.z - (prep.pl.aul ?? prep.core).z) });
+          side = -side;
+        }
+        acc -= len;
+      }
+    }
+    prep.genSlots.sort((p, q) => p.dist - q.dist);
+  }
+  const seen = prep.genSlots.filter((s) => s.since <= decade), rest = prep.genSlots.filter((s) => s.since > decade);
+  return [...seen, ...rest];
+}
+
 export function layout(prep, eras, decade) {
   const era = eras.find((e) => e.decade === decade) ?? eras[0];
   const sc = era.scene;
@@ -75,7 +103,8 @@ export function layout(prep, eras, decade) {
     // Жилые дома: участок получает «год постройки» — первый период, когда до него дошла застройка;
     // вид дома — по смеси типов того периода (землянки к 1950-м заменены саманом).
     const past = eras.filter((e) => e.decade <= decade && !e.scene.today);
-    prep.plots.slice(0, sc.houses).forEach((b, i) => {
+    const plots = slotsFor(prep, decade);
+    plots.slice(0, sc.houses).forEach((b, i) => {
       const built = past.find((e) => i < e.scene.houses) ?? era;
       let type = pickType(built.scene.mix, b.id);
       // Со временем старые дома перестраивают: землянки — в саман, соломенные крыши — под шифер (с 1960-х),
@@ -87,11 +116,11 @@ export function layout(prep, eras, decade) {
       if (['saman', 'saman60', 'zemlyanka', 'shchit'].includes(type) && decade < 1970) fence(add, b);
     });
     // Юрты и зимовка — на следующих за застройкой участках (на краю села).
-    const edge = prep.plots.slice(sc.houses, sc.houses + 12);
+    const edge = plots.slice(sc.houses, sc.houses + 12);
     for (let i = 0; i < (sc.yurts ?? 0); i++) { const b = edge[i * 2]; if (b) add('yurt', b.x + 6, b.z + 4, hash(b.id) * 6); }
     if (decade <= 1910 && edge[7]) add('kystau', edge[7].x, edge[7].z, edge[7].rot);
     // Целина: палатки и вагончики.
-    const camp = prep.plots.slice(sc.houses + ((sc.yurts ?? 0) ? 12 : 0), sc.houses + 40);
+    const camp = plots.slice(sc.houses + ((sc.yurts ?? 0) ? 12 : 0), sc.houses + 40);
     for (let i = 0; i < (sc.tents ?? 0); i++) { const b = camp[i]; if (b) add('tent', b.x, b.z, b.rot); }
     for (let i = 0; i < (sc.wagons ?? 0); i++) { const b = camp[(sc.tents ?? 0) + i]; if (b) add('wagon', b.x, b.z, b.rot); }
   }
@@ -116,7 +145,7 @@ export function layout(prep, eras, decade) {
   // Деревья — вдоль улиц, детерминированно.
   const trees = [];
   for (const r of prep.roads) {
-    if (r.since > decade) continue; // улицы, которых в этом десятилетии ещё нет
+    if (r.since > decade || (r.until != null && r.until < decade)) continue; // улиц, которых в этом десятилетии ещё нет или уже нет
     for (let i = 1; i < r.pts.length; i++) {
       const a = r.pts[i - 1], b = r.pts[i], len = Math.hypot(b.x - a.x, b.z - a.z);
       const nx = -(b.z - a.z) / len, nz = (b.x - a.x) / len;

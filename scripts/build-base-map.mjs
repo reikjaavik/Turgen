@@ -101,7 +101,7 @@ if (existsSync(GENPLAN)) {
     const len = roadsM.get(f).reduce((acc, q, i, arr) => acc + (i ? Math.hypot(q[0] - arr[i - 1][0], q[1] - arr[i - 1][1]) : 0), 0);
     if (f.properties.road === 'major' || (f.properties.road === 'mid' && len > 600)) return 1900; // дороги района существовали и раньше
     const dmin = lineDist(core, roadsM.get(f)); // ближайшая к центру точка улицы
-    return (radii.find((e) => e.r >= dmin - 15)?.decade) ?? 2000;
+    return Math.max(1960, (radii.find((e) => e.r >= dmin - 15)?.decade) ?? 2000); // современная сетка улиц — не раньше 1960-х
   };
   // Названия улиц на старом плане (1960–1980-е): подпись → ближайшая улица (до 45 м), одна подпись — одной улице.
   const oldNames = new Map();
@@ -144,6 +144,31 @@ if (existsSync(GENPLAN)) {
       kinds.parcels.push(`<path d="${d(pts, f.properties.closed)}"/>`);
       feat('parcel', { type: 'LineString', coordinates: ll(pts) });
     }
+  }
+  // 1900–1950-е: «свои логичные улицы». Источников о планировке тех лет нет, поэтому улицы условные: цельная сельская улица через центр,
+  // её продолжения и параллельная улица, которые растут с числом домов периода; в 1960-х сеть сменяется той, что выведена из плана.
+  const AX = (12 * Math.PI) / 180, U = [Math.sin(AX), Math.cos(AX)], NR = [Math.cos(AX), -Math.sin(AX)];
+  const fromM = ([x, y]) => [cLat + y / M_PER_DEG_LAT, cLon + x / mPerDegLon];
+  const genLine = (origin, dir, side, t0, t1, bend) => {
+    const pts = [];
+    const n = Math.max(2, Math.ceil((t1 - t0) / 15));
+    for (let i = 0; i <= n; i++) {
+      const t = t0 + ((t1 - t0) * i) / n, lat = bend ? (t * t) / 2800 : 0;
+      pts.push(fromM([origin[0] + dir[0] * t + side[0] * lat, origin[1] + dir[1] * t + side[1] * lat]));
+    }
+    return pts;
+  };
+  const GEN = [];
+  const aulXY = placesAll.find((p) => p.id === 'aul') ? toM(placesAll.find((p) => p.id === 'aul').lat, placesAll.find((p) => p.id === 'aul').lon) : core;
+  const A = aulXY, B = [aulXY[0] + NR[0] * 120, aulXY[1] + NR[1] * 120]; // улицы условного старого села — у отмеченного центра аула
+  const seg = (origin, ranges, since, id, bend = true) => ranges.forEach(([a, b], i) => GEN.push({ pts: genLine(origin, U, NR, a, b, bend), since, id: `${id}${i}` }));
+  seg(A, [[-90, 90]], 1900, 'gen-a0'); seg(A, [[90, 135], [-135, -90]], 1910, 'gen-a1'); seg(A, [[135, 180], [-180, -135]], 1920, 'gen-a2');
+  seg(A, [[180, 200], [-200, -180]], 1930, 'gen-a3'); seg(A, [[200, 220], [-220, -200]], 1940, 'gen-a4'); seg(A, [[220, 260], [-260, -220]], 1950, 'gen-a5');
+  seg(B, [[-100, 100]], 1930, 'gen-b0'); seg(B, [[100, 180], [-180, -100]], 1950, 'gen-b1');
+  GEN.push({ pts: genLine(A, NR, U, -60, 130, false), since: 1950, id: 'gen-lane' });
+  for (const g of GEN) {
+    layers.roads.push(`<path class="road-street" d="${d(g.pts)}" data-since="${g.since}" data-until="1950"/>`);
+    feat('road', { type: 'LineString', coordinates: ll(g.pts) }, { road: 'street', since: g.since, until: 1950, gen: true, id: g.id });
   }
   Object.assign(layers, kinds);
 } else if (existsSync(OVERTURE)) {

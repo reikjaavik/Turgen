@@ -132,7 +132,7 @@ function setupPanZoom() {
 function drawStreets() {
   if (!baseEl) return;
   const dec = focus.decade;
-  baseEl.querySelectorAll('.base-roads path').forEach((p) => { p.style.display = +p.dataset.since <= dec ? '' : 'none'; });
+  baseEl.querySelectorAll('.base-roads path').forEach((p) => { p.style.display = +p.dataset.since <= dec && (!p.dataset.until || dec <= +p.dataset.until) ? '' : 'none'; });
   baseEl.querySelector('.map-street-names')?.remove();
   if (zoomK() < 2) return;
   const g = el('g', { class: 'map-street-names' });

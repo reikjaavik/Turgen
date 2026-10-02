@@ -113,7 +113,7 @@ function applyFocus() {
   if (!map) return;
   applyOverlay(focus.overlay);
   for (const id of MODERN_LAYERS) map.setLayoutProperty(id, 'visibility', today ? 'visible' : 'none');
-  map.setFilter('roads', ['all', ['==', ['get', 'kind'], 'road'], ['<=', ['get', 'since'], focus.decade]]);
+  map.setFilter('roads', ['all', ['==', ['get', 'kind'], 'road'], ['<=', ['get', 'since'], focus.decade], ['>=', ['coalesce', ['get', 'until'], 9999], focus.decade]]);
   // Сегодня улицы асфальтированы — серые; раньше — грунтовые, цвета земли.
   map.setPaintProperty('roads', 'line-color', today ? css('--road-asphalt') : ['match', ['get', 'road'], 'major', css('--road-major'), css('--road')]);
   const showStreets = map.getZoom() >= labelZoom;
