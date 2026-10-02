@@ -125,11 +125,12 @@ function ribbon(pts, width, material, y) {
   return m;
 }
 
-// Сегодня асфальтированы все улицы; раньше асфальт — только на главной дороге, остальные — грунт/гравий.
+// Покрытие: асфальт — на главных дорогах (по документам генплана 2020 из 3 км 900 м улиц села асфальтировано лишь 640 м, остальное — грунт).
 function setRoads(kind, today = false, d = 2000) {
   for (const m of roadMeshes) {
     m.visible = m.userData.since <= d && (m.userData.until == null || d <= m.userData.until); // «свои логичные улицы»: сеть растёт вместе с селом
-    const k = today || m.userData.road === 'major' ? kind : kind === 'asphalt' ? 'gravel' : kind;
+    const main = m.userData.road === 'major' || m.userData.road === 'mid';
+    const k = today ? (main ? 'asphalt' : 'dirt') : main && m.userData.road === 'major' ? kind : kind === 'asphalt' ? 'gravel' : kind;
     const map = { dirt: T.dirt, gravel: T.gravel, asphalt: T.asphalt }[k]().clone();
     map.repeat.set(1, 1); map.needsUpdate = true;
     m.material.map = map; m.material.needsUpdate = true;

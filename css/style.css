@@ -309,7 +309,7 @@ body[data-drawer="closed"] .drawer { display: none; }
 .base-quarters path { fill: var(--quarter); stroke: var(--parcel); stroke-width: .8; vector-effect: non-scaling-stroke; }
 .base-parcels path { fill: none; stroke: var(--parcel); stroke-width: .6; vector-effect: non-scaling-stroke; }
 .base-roads path { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke: var(--road); vector-effect: non-scaling-stroke; }
-#map:not(.past) .base-roads path, #map:not(.past) .base-roads .road-major { stroke: var(--road-asphalt); }
+#map:not(.past) .base-roads .road-major, #map:not(.past) .base-roads .road-mid { stroke: var(--road-asphalt); } /* асфальт — только главные дороги */
 .base-roads .road-major { stroke: var(--road-major); stroke-width: 5; }
 .base-roads .road-mid { stroke-width: 3.5; }
 .base-roads .road-street { stroke-width: 2.5; }
