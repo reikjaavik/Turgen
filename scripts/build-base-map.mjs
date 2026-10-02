@@ -9,7 +9,8 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 const W = 800, H = 560;
-const [cLat = 50.7625, cLon = 72.3200, widthM = 2600] = process.argv.slice(2).map(Number);
+// Охват: село и площадки МТМ и стоянки к северу от него (как начальный вид 3D-карты в js/map3d.js).
+const [cLat = 50.76675, cLon = 72.32125, widthM = 4000] = process.argv.slice(2).map(Number);
 const M_PER_DEG_LAT = 111320;
 const mPerDegLon = M_PER_DEG_LAT * Math.cos((cLat * Math.PI) / 180);
 const heightM = (widthM * H) / W;
