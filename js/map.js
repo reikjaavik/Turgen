@@ -5,7 +5,10 @@ const W = 800, H = 560;
 
 let projection = null; // { minLat, maxLat, minLon, maxLon, mPerPx }
 let svg, baseEl, objectsEl, draftsEl;
-let view = { x: 0, y: 0, w: W, h: H };
+const FULL = { x: 0, y: 0, w: W, h: H };
+const HOME_ZOOM = 2.2; // начальный вид — село крупно; весь охват (с МТМ и стоянкой на севере) — кнопкой «всё село»
+const HOME_CENTER = { lat: 50.7628, lon: 72.3232 };
+let view = { ...FULL };
 let focus = { places: [], isVisible: () => true, highlight: new Set(), pulse: null, overlay: null };
 let drafts = {};
 let opts = { onSelect: () => {}, label: (o) => o.id, onMapClick: null };
@@ -23,6 +26,7 @@ export async function initStage(svgEl, options) {
     const m = root.dataset;
     if (m.minLat) projection = { minLat: +m.minLat, maxLat: +m.maxLat, minLon: +m.minLon, maxLon: +m.maxLon, mPerPx: +m.scaleM || null };
     baseEl.innerHTML = root.innerHTML;
+    view = homeView();
   } catch {
     baseEl.innerHTML = '';
   }
@@ -57,7 +61,15 @@ export function zoomBy(f, cx = view.x + view.w / 2, cy = view.y + view.h / 2) {
   view = { x: cx - ((cx - view.x) * w) / view.w, y: cy - ((cy - view.y) * h) / view.h, w, h };
   applyView();
 }
-export function resetZoom() { view = { x: 0, y: 0, w: W, h: H }; applyView(); }
+// Начальный вид: село крупно, по центру HOME_CENTER.
+function homeView() {
+  if (!projection) return { ...FULL };
+  const w = W / HOME_ZOOM, h = H / HOME_ZOOM, c = project(HOME_CENTER.lat, HOME_CENTER.lon);
+  return { x: Math.min(Math.max(c.x - w / 2, 0), W - w), y: Math.min(Math.max(c.y - h / 2, 0), H - h), w, h };
+}
+export function resetZoom() { view = homeView(); applyView(); }
+// Весь охват схемы: село и площадки МТМ и стоянки к северу от него.
+export function overview() { view = { ...FULL }; applyView(); }
 
 function applyView() {
   // Не даём увести схему за край.
@@ -142,7 +154,7 @@ function drawObjects() {
     else if (anyHl) g.classList.add('dim');
     if (focus.pulse === o.id) g.classList.add('pulse');
     // Подписи: при обычном масштабе — только у центра аула и выбранных мест (иначе налезают); при приближении — у всех.
-    if (k >= 1.8 || o.type === 'village' || o.approx || focus.highlight.has(o.id)) g.classList.add('labeled');
+    if (k >= 3.2 || o.type === 'village' || o.approx || focus.highlight.has(o.id)) g.classList.add('labeled');
     const label = opts.label(o);
     const title = el('title');
     title.textContent = label;

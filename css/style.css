@@ -435,7 +435,7 @@ body[data-drawer="closed"] .drawer { display: none; }
 /* ---------- 3D-сцена ---------- */
 .map3d { position: absolute; inset: 0; }
 body[data-stage="3d"] #map, body[data-stage="3d"] .recon, body[data-stage="3d"] .only-village { display: none; }
-body[data-stage="2d"] .map3d, body[data-stage="2d"] .only-3d, body[data-stage="2d"] .recon, body[data-stage="2d"] .only-village { display: none; }
+body[data-stage="2d"] .map3d, body[data-stage="2d"] .only-3d, body[data-stage="2d"] .recon, body[data-stage="2d"] .only-village:not(.also-2d) { display: none; }
 body[data-stage="village"] #map, body[data-stage="village"] .map3d, body[data-stage="village"] .only-3d { display: none; }
 .stage-decade, .stage-tools, .unmarked, .legend, .stage-hint, .map-credit, .drawer-open { z-index: 2; }
 .maplibregl-canvas.marking { cursor: crosshair; }
