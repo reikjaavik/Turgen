@@ -61,8 +61,30 @@ function pickType(mix, key) {
 // Участки под дома. С 1960-х — современные контуры зданий (Overture/генплан), ближайшие к центру. До 1960-х планировка не известна:
 // «свои логичные улицы» (gen в base.geojson) — дома встают вдоль них по обе стороны, от центра наружу. Дальние участки (на ещё не
 // построенных отрезках улиц) идут после — под юрты, зимовку и палатки на краю села.
+// Расстояние от точки до ломаной (x, z).
+function polyDist(p, pts) {
+  let m = Infinity;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], dx = b.x - a.x, dz = b.z - a.z;
+    const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / (dx * dx + dz * dz || 1)));
+    m = Math.min(m, Math.hypot(p.x - a.x - t * dx, p.z - a.z - t * dz));
+  }
+  return m;
+}
+
 function slotsFor(prep, decade) {
-  if (decade >= 1960) return prep.plots;
+  if (decade >= 1960) {
+    // Дома — на реальных участках, но сначала на тех, что стоят вдоль улиц, существующих в этом десятилетии; остальные — после.
+    prep.along ??= new Map();
+    if (!prep.along.has(decade)) {
+      const vis = prep.roads.filter((r) => !r.gen && r.road !== 'major' && r.since <= decade);
+      const near = (b) => vis.some((r) => polyDist(b, r.pts) < 32);
+      const [yes, no] = [[], []];
+      for (const b of prep.plots) (near(b) ? yes : no).push(b);
+      prep.along.set(decade, [...yes, ...no]);
+    }
+    return prep.along.get(decade);
+  }
   if (!prep.genSlots) {
     prep.genSlots = [];
     for (const r of prep.roads.filter((q) => q.gen)) {

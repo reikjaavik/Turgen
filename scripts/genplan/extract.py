@@ -547,6 +547,44 @@ for r, props in osm_village:
             run = []
 print(f'улицы села: {n_net} осей между кварталами + {n_osm} кусков по OSM вне этой сети', file=sys.stderr)
 
+# Связность: концы улиц села, не дошедшие до перекрёстка, достраиваются до ближайшей другой улицы (до 35 м), чтобы линии не обрывались.
+def local_of(f):
+    return np.array([((lo - LON0) * MLON, (la - LAT0) * MLAT) for lo, la in f['geometry']['coordinates']])
+
+
+def nearest_on_line(pt, line):
+    a, b = line[:-1], line[1:]
+    ab = b - a
+    t = np.clip(((pt - a) * ab).sum(1) / np.maximum((ab * ab).sum(1), 1e-9), 0, 1)
+    proj = a + ab * t[:, None]
+    dd = np.hypot(*(proj - pt).T)
+    k = int(dd.argmin())
+    return float(dd[k]), proj[k]
+
+
+road_idx = [i for i, f in enumerate(features) if f['properties']['kind'] == 'road']
+road_loc = {i: local_of(features[i]) for i in road_idx}
+n_join = 0
+for i in road_idx:
+    if features[i]['properties'].get('src') != 'genplan':
+        continue
+    line = road_loc[i]
+    for end in (0, -1):
+        pt = line[end]
+        best = None
+        for j in road_idx:
+            if j == i:
+                continue
+            dd, proj = nearest_on_line(pt, road_loc[j])
+            if best is None or dd < best[0]:
+                best = (dd, proj)
+        if best and 0.5 < best[0] <= 35:
+            line = np.vstack([best[1], line]) if end == 0 else np.vstack([line, best[1]])
+            n_join += 1
+    road_loc[i] = line
+    features[i]['geometry']['coordinates'] = ll(line)
+print(f'связность: достроено концов улиц до перекрёстков: {n_join}', file=sys.stderr)
+
 # ───────────────────────── участки (ограждения) ─────────────────────────
 n_par = 0
 for e in ents:
