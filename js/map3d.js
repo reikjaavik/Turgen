@@ -91,6 +91,11 @@ function addStreetNames(base) {
   }
 }
 
+// Современная основа (генплан 2020) — только в «Сегодня»; в прошлых десятилетиях остаются река, поля, главные дороги.
+const MODERN_LAYERS = ['residential', 'zones', 'quarters', 'parcels', 'buildings-flat'];
+const ROADS_ALL = ['==', ['get', 'kind'], 'road'];
+const ROADS_PAST = ['all', ROADS_ALL, ['in', ['get', 'road'], ['literal', ['major', 'mid']]]];
+
 // Исторический слой (старый план): растровая картинка по четырём углам; слой меняется вместе с десятилетием.
 let overlayShown = null;
 function applyOverlay(ov) {
@@ -107,6 +112,8 @@ function applyOverlay(ov) {
 function applyFocus() {
   if (!map) return;
   applyOverlay(focus.overlay);
+  for (const id of MODERN_LAYERS) map.setLayoutProperty(id, 'visibility', today ? 'visible' : 'none');
+  map.setFilter('roads', today ? ROADS_ALL : ROADS_PAST);
   const showStreets = map.getZoom() >= labelZoom;
   for (const el of streetEls) el.classList.toggle('on', showStreets);
   map.setPaintProperty('buildings-3d', 'fill-extrusion-height', today ? ['get', 'h'] : 0);

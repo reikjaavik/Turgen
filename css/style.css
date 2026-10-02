@@ -441,7 +441,9 @@ body[data-stage="2d"] .map3d, body[data-stage="2d"] .only-3d, body[data-stage="2
 body[data-stage="village"] #map, body[data-stage="village"] .map3d, body[data-stage="village"] .only-3d { display: none; }
 .stage-decade, .stage-tools, .unmarked, .legend, .stage-hint, .map-credit, .drawer-open { z-index: 2; }
 .maplibregl-canvas.marking { cursor: crosshair; }
-#map.past .base-buildings path { opacity: .3; }
+/* Современная основа (генплан 2020) в прошлых десятилетиях не показывается: остаются река, поля, главные дороги и места. */
+#map.past .base-buildings, #map.past .base-quarters, #map.past .base-parcels, #map.past .base-zones, #map.past .base-residential,
+#map.past .base-roads .road-street, #map.past .base-roads .road-minor { display: none; }
 .m3d {
   --c: var(--t-postwar);
   display: flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer;
