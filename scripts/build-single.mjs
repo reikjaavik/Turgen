@@ -3,6 +3,7 @@
 // Замены — функциями: в минифицированном коде встречаются `$&`, `$'`, которые String.replace иначе подставит.
 // Запуск: node scripts/build-single.mjs
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 
 const root = new URL('../', import.meta.url);
@@ -14,6 +15,11 @@ for (const f of readdirSync(new URL('data/', root))) if (f.endsWith('.json') && 
 for (const f of readdirSync(new URL('data/i18n/', root))) files[`data/i18n/${f}`] = read(`data/i18n/${f}`);
 files['assets/map/base.svg'] = read('assets/map/base.svg');
 files['assets/map/base.geojson'] = read('assets/map/base.geojson');
+
+// Исторические слои карты (картинки старых планов) → data URI прямо в data/overlays.json.
+const overlays = JSON.parse(files['data/overlays.json']);
+for (const o of overlays.overlays) o.image = `data:image/png;base64,${read(o.image, null).toString('base64')}`;
+files['data/overlays.json'] = JSON.stringify(overlays);
 
 // Фото → data URI.
 const photos = {};
@@ -46,7 +52,7 @@ new MutationObserver((list) => {
 }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['src'] });
 `;
 
-const js = await build({ entryPoints: [new URL('js/app.js', root).pathname], bundle: true, format: 'iife', write: false, minify: true });
+const js = await build({ entryPoints: [fileURLToPath(new URL('js/app.js', root))], bundle: true, format: 'iife', write: false, minify: true });
 const css = read('css/style.css');
 let html = read('index.html')
   .replace('<link rel="stylesheet" href="css/style.css">', () => `<style>${css}</style>`)
