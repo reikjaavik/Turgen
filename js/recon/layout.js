@@ -35,7 +35,7 @@ function footprint(f, i) {
 export function prepare(base, places) {
   const feats = base.features;
   const buildings = feats.filter((f) => f.properties.kind === 'building' && f.geometry.type === 'Polygon').map(footprint);
-  const roads = feats.filter((f) => f.properties.kind === 'road').map((f) => ({ road: f.properties.road, since: f.properties.since ?? 1900, until: f.properties.until, gen: !!f.properties.gen, id: f.properties.id, name: f.properties.name, oldName: f.properties.oldName, pts: f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)) }));
+  const roads = feats.filter((f) => f.properties.kind === 'road').map((f) => ({ road: f.properties.road, asphalt: !!f.properties.asphalt, since: f.properties.since ?? 1900, until: f.properties.until, gen: !!f.properties.gen, id: f.properties.id, name: f.properties.name, oldName: f.properties.oldName, pts: f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)) }));
   const river = feats.filter((f) => f.properties.kind === 'river').map((f) => f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)));
   const pl = Object.fromEntries(places.filter((p) => p.lat != null).map((p) => [p.id, { ...toXZ(p.lat, p.lon), place: p }]));
 

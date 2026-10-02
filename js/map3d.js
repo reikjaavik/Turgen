@@ -114,8 +114,8 @@ function applyFocus() {
   applyOverlay(focus.overlay);
   for (const id of MODERN_LAYERS) map.setLayoutProperty(id, 'visibility', today ? 'visible' : 'none');
   map.setFilter('roads', ['all', ['==', ['get', 'kind'], 'road'], ['<=', ['get', 'since'], focus.decade], ['>=', ['coalesce', ['get', 'until'], 9999], focus.decade]]);
-  // Сегодня асфальт — только на главных дорогах (серые), остальные улицы грунтовые (цвета земли).
-  map.setPaintProperty('roads', 'line-color', today ? ['match', ['get', 'road'], ['major', 'mid'], css('--road-asphalt'), css('--road')] : ['match', ['get', 'road'], 'major', css('--road-major'), css('--road')]);
+  // Сегодня асфальт — на магистралях и дорогах с асфальтом на съёмке (серые), остальные улицы грунтовые (цвета земли).
+  map.setPaintProperty('roads', 'line-color', today ? ['case', ['coalesce', ['get', 'asphalt'], false], css('--road-asphalt'), css('--road')] : ['match', ['get', 'road'], 'major', css('--road-major'), css('--road')]);
   const showStreets = map.getZoom() >= labelZoom;
   for (const { el, f } of streetEls) {
     const nm = streetNameAt(f, focus.decade);

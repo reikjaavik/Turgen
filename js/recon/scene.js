@@ -93,7 +93,7 @@ function buildGround() {
   const W = { major: 10, mid: 7, street: 6, minor: 4 };
   roadMeshes = prep.roads.map((r) => {
     const m = ribbon(r.pts, W[r.road] ?? 5, new THREE.MeshStandardMaterial({ map: T.dirt(), roughness: 1 }), 0.08 + (r.road === 'major' ? 0.02 : 0));
-    m.userData = { road: r.road, since: r.since, until: r.until, name: r.name, oldName: r.oldName, mid: r.pts[Math.floor((r.pts.length - 1) / 2)] };
+    m.userData = { road: r.road, asphalt: r.asphalt, since: r.since, until: r.until, name: r.name, oldName: r.oldName, mid: r.pts[Math.floor((r.pts.length - 1) / 2)] };
     scene.add(m);
     return m;
   });
@@ -125,12 +125,12 @@ function ribbon(pts, width, material, y) {
   return m;
 }
 
-// Покрытие: асфальт — на главных дорогах (по документам генплана 2020 из 3 км 900 м улиц села асфальтировано лишь 640 м, остальное — грунт).
+// Покрытие «Сегодня»: асфальт — на магистралях и на дорогах, где съёмка генплана отметила асфальт; остальные улицы — грунт
+// (по документам генплана 2020 из 3 км 900 м улиц села асфальтировано лишь 640 м).
 function setRoads(kind, today = false, d = 2000) {
   for (const m of roadMeshes) {
     m.visible = m.userData.since <= d && (m.userData.until == null || d <= m.userData.until); // «свои логичные улицы»: сеть растёт вместе с селом
-    const main = m.userData.road === 'major' || m.userData.road === 'mid';
-    const k = today ? (main ? 'asphalt' : 'dirt') : main && m.userData.road === 'major' ? kind : kind === 'asphalt' ? 'gravel' : kind;
+    const k = today ? (m.userData.asphalt ? 'asphalt' : 'dirt') : m.userData.road === 'major' ? kind : kind === 'asphalt' ? 'gravel' : kind;
     const map = { dirt: T.dirt, gravel: T.gravel, asphalt: T.asphalt }[k]().clone();
     map.repeat.set(1, 1); map.needsUpdate = true;
     m.material.map = map; m.material.needsUpdate = true;

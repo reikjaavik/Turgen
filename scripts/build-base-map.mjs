@@ -96,6 +96,8 @@ if (existsSync(GENPLAN)) {
   const radii = eraList.filter((e) => e.scene.houses != null).map((e) => ({ decade: e.decade, r: (plotDist[Math.min(e.scene.houses, plotDist.length) - 1] ?? 0) + 40 }));
   const segDist = (p, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1))); return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy); };
   const lineDist = (p, pts) => { let m = Infinity; for (let i = 1; i < pts.length; i++) m = Math.min(m, segDist(p, pts[i - 1], pts[i])); return m; };
+  // Асфальт «Сегодня»: по документам асфальтировано лишь 640 м из 3,9 км улиц, где именно — не показано (точки съёмки «асфальт» стоят у
+  // торцов построек фермы, а не на дорогах), поэтому по решению автора асфальт — только на главных дорогах (major, mid): допущение.
   const roadsM = new Map(plan.features.filter((f) => f.properties.kind === 'road').map((f) => [f, f.geometry.coordinates.map(([lon, lat]) => toM(lat, lon))]));
   const sinceOf = (f) => {
     const len = roadsM.get(f).reduce((acc, q, i, arr) => acc + (i ? Math.hypot(q[0] - arr[i - 1][0], q[1] - arr[i - 1][1]) : 0), 0);
@@ -120,9 +122,10 @@ if (existsSync(GENPLAN)) {
       const pts = flat(g.coordinates);
       if (!inView(pts)) continue;
       const road = f.properties.road, since = sinceOf(f), oldName = oldNames.get(f);
+      const asphalt = !f.properties.gen && (road === 'major' || road === 'mid');
       const mid = px(...pts[Math.floor((pts.length - 1) / 2)]);
-      layers.roads.push(`<path class="road-${road}" d="${d(pts)}" data-since="${since}"${f.properties.name ? ` data-name="${esc(f.properties.name)}"` : ''}${oldName ? ` data-old="${esc(oldName)}"` : ''} data-lx="${mid[0].toFixed(1)}" data-ly="${mid[1].toFixed(1)}"/>`);
-      feat('road', { type: 'LineString', coordinates: ll(pts) }, { road, since, ...(f.properties.name ? { name: f.properties.name } : {}), ...(oldName ? { oldName } : {}) });
+      layers.roads.push(`<path class="road-${road}" d="${d(pts)}" data-since="${since}"${asphalt ? ' data-asphalt="1"' : ''}${f.properties.name ? ` data-name="${esc(f.properties.name)}"` : ''}${oldName ? ` data-old="${esc(oldName)}"` : ''} data-lx="${mid[0].toFixed(1)}" data-ly="${mid[1].toFixed(1)}"/>`);
+      feat('road', { type: 'LineString', coordinates: ll(pts) }, { road, since, ...(asphalt ? { asphalt: true } : {}), ...(f.properties.name ? { name: f.properties.name } : {}), ...(oldName ? { oldName } : {}) });
     } else if (k === 'building') {
       for (const rings of polyCoords(g)) {
         const pts = flat(rings[0]);
