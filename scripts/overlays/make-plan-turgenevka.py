@@ -89,5 +89,18 @@ al = Image.fromarray((alpha * 255).astype(np.uint8)).transform((W, H), Image.AFF
 out = Image.new('RGBA', (W, H), tuple(INK) + (0,))
 out.putalpha(al)
 out.save('assets/overlays/plan-turgenevka.png', optimize=True)
+# --- названия улиц на листе: подпись → точка на карте (для data/raw/oldplan-street-labels.json)
+import json
+STREETS = {  # пиксели повёрнутого скана, где на листе стоит подпись улицы
+    'ул. Первомайская': (1135, 791), 'ул. Школьная': (1488, 1131), 'ул. Целинная': (1036, 1304), 'пер. Центральный': (879, 964),
+    'пер. Спортивный': (1890, 950), 'ул. Зелёная': (1988, 965), 'ул. Набережная': (1029, 570), 'ул. Молодёжная': (471, 968),
+    'ул. Строителей': (443, 614),
+}
+lab = []
+for nm, (x, y) in STREETS.items():
+    E, N = p @ np.array([x, y, 1])
+    lab.append({'name': nm, 'lat': round(float(LAT0 + N / MLAT), 6), 'lon': round(float(LON0 + E / MLON), 6)})
+json.dump({'note': 'Подписи улиц на старом плане Тургеневки (скан), перенесённые на карту по той же привязке; положение приблизительное.',
+           'labels': lab}, open('data/raw/oldplan-street-labels.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 corner = lambda E, N: [round(float(LON0 + E / MLON), 6), round(float(LAT0 + N / MLAT), 6)]
 print('размер', W, H, 'углы [tl, tr, br, bl]:', [corner(E0, N1), corner(E1, N1), corner(E1, N0), corner(E0, N0)])

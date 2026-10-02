@@ -35,7 +35,7 @@ function footprint(f, i) {
 export function prepare(base, places) {
   const feats = base.features;
   const buildings = feats.filter((f) => f.properties.kind === 'building' && f.geometry.type === 'Polygon').map(footprint);
-  const roads = feats.filter((f) => f.properties.kind === 'road').map((f) => ({ road: f.properties.road, pts: f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)) }));
+  const roads = feats.filter((f) => f.properties.kind === 'road').map((f) => ({ road: f.properties.road, since: f.properties.since ?? 1900, name: f.properties.name, oldName: f.properties.oldName, pts: f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)) }));
   const river = feats.filter((f) => f.properties.kind === 'river').map((f) => f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)));
   const pl = Object.fromEntries(places.filter((p) => p.lat != null).map((p) => [p.id, { ...toXZ(p.lat, p.lon), place: p }]));
 
@@ -116,6 +116,7 @@ export function layout(prep, eras, decade) {
   // Деревья — вдоль улиц, детерминированно.
   const trees = [];
   for (const r of prep.roads) {
+    if (r.since > decade) continue; // улицы, которых в этом десятилетии ещё нет
     for (let i = 1; i < r.pts.length; i++) {
       const a = r.pts[i - 1], b = r.pts[i], len = Math.hypot(b.x - a.x, b.z - a.z);
       const nx = -(b.z - a.z) / len, nz = (b.x - a.x) / len;

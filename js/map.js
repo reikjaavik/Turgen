@@ -9,7 +9,7 @@ const FULL = { x: 0, y: 0, w: W, h: H };
 const HOME_ZOOM = 2.2; // начальный вид — село крупно; весь охват (с МТМ и стоянкой на севере) — кнопкой «всё село»
 const HOME_CENTER = { lat: 50.7628, lon: 72.3232 };
 let view = { ...FULL };
-let focus = { places: [], isVisible: () => true, highlight: new Set(), pulse: null, overlay: null };
+let focus = { places: [], isVisible: () => true, highlight: new Set(), pulse: null, overlay: null, decade: 2000 };
 let drafts = {};
 let opts = { onSelect: () => {}, label: (o) => o.id, onMapClick: null };
 
@@ -37,9 +37,10 @@ export async function initStage(svgEl, options) {
 // Экранный масштаб: насколько схема приближена (1 — вся схема).
 const zoomK = () => W / view.w;
 
-export function setFocus({ places, isVisible, highlight = [], pulse = null, today = false, overlay = null }) {
-  focus = { places, isVisible, highlight: new Set(highlight), pulse, overlay };
+export function setFocus({ places, isVisible, highlight = [], pulse = null, today = false, overlay = null, decade = 2000 }) {
+  focus = { places, isVisible, highlight: new Set(highlight), pulse, overlay, decade };
   drawOverlay();
+  drawStreets();
   // Современная застройка в прошлых десятилетиях — бледной тенью для ориентира.
   svg.classList.toggle('past', !today);
   drawObjects();
@@ -77,6 +78,7 @@ function applyView() {
   view.y = Math.min(Math.max(view.y, 0), H - view.h);
   svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`);
   svg.style.setProperty('--k', zoomK());
+  drawStreets();
   drawObjects();
   drawDrafts();
 }
@@ -123,6 +125,26 @@ function setupPanZoom() {
     const p = toSvg(e);
     zoomBy(e.deltaY < 0 ? 1.25 : 0.8, p.x, p.y);
   }, { passive: false });
+}
+
+// Улицы по десятилетию («свои логичные улицы»: сеть растёт вместе с селом) и названия там, где они известны из источников:
+// старый план (1960–1980-е) и генплан 2020 («Сегодня»). Подписи — при приближении.
+function drawStreets() {
+  if (!baseEl) return;
+  const dec = focus.decade;
+  baseEl.querySelectorAll('.base-roads path').forEach((p) => { p.style.display = +p.dataset.since <= dec ? '' : 'none'; });
+  baseEl.querySelector('.map-street-names')?.remove();
+  if (zoomK() < 2) return;
+  const g = el('g', { class: 'map-street-names' });
+  const k = zoomK();
+  baseEl.querySelectorAll('.base-roads path[data-lx]').forEach((p) => {
+    const nm = dec >= 2000 ? p.dataset.name : dec >= 1960 && dec <= 1980 ? p.dataset.old : '';
+    if (!nm || +p.dataset.since > dec) return;
+    const t = el('text', { x: p.dataset.lx, y: p.dataset.ly, 'text-anchor': 'middle', 'font-size': (11 / k).toFixed(2) });
+    t.textContent = nm;
+    g.append(t);
+  });
+  baseEl.append(g);
 }
 
 // Исторический слой (старый план) — картинка поверх основы, в границах по четырём углам.

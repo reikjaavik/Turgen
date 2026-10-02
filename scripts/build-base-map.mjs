@@ -71,6 +71,47 @@ if (existsSync(GENPLAN)) {
   const flat = (coords) => coords.map(([lon, lat]) => [lat, lon]);
   const kinds = { zones: [], quarters: [], parcels: [] };
   layers.roads = []; layers.buildings = [];
+  // Для прошлых десятилетий — «свои логичные улицы»: улица появляется в том десятилетии, когда застройка (число домов периода,
+  // data/eras.json) доходит до неё от центра села. Радиус периода — расстояние до последнего из N «участков под жильё», как в js/recon/layout.js.
+  const readJson = (rel) => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'));
+  const placesAll = readJson('../data/places.json').places.filter((p) => p.lat != null);
+  const eraList = readJson('../data/eras.json').eras;
+  const toM = (lat, lon) => [(lon - cLon) * mPerDegLon, (lat - cLat) * M_PER_DEG_LAT];
+  const placeXY = placesAll.map((p) => toM(p.lat, p.lon));
+  const social = ['dom-kultury', 'pochta', 'shkola', 'kontora', 'magaziny', 'monument-vov'].map((id) => placesAll.find((p) => p.id === id)).filter(Boolean).map((p) => toM(p.lat, p.lon));
+  const core = [social.reduce((a, q) => a + q[0], 0) / social.length, social.reduce((a, q) => a + q[1], 0) / social.length];
+  const areaM2 = (ring) => { let a = 0; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const A = toM(ring[j][1], ring[j][0]), B = toM(ring[i][1], ring[i][0]); a += A[0] * B[1] - B[0] * A[1]; } return Math.abs(a / 2); };
+  const plotDist = [];
+  for (const f of plan.features) {
+    if (f.properties.kind !== 'building') continue;
+    for (const rings of polyCoords(f.geometry)) {
+      const ring = rings[0];
+      if (areaM2(ring) >= 260) continue;
+      const c = toM(ring.reduce((a, q) => a + q[1], 0) / ring.length, ring.reduce((a, q) => a + q[0], 0) / ring.length);
+      if (placeXY.some((q) => Math.hypot(q[0] - c[0], q[1] - c[1]) < 14)) continue;
+      plotDist.push(Math.hypot(c[0] - core[0], c[1] - core[1]));
+    }
+  }
+  plotDist.sort((a, b) => a - b);
+  const radii = eraList.filter((e) => e.scene.houses != null).map((e) => ({ decade: e.decade, r: (plotDist[Math.min(e.scene.houses, plotDist.length) - 1] ?? 0) + 40 }));
+  const segDist = (p, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1))); return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy); };
+  const lineDist = (p, pts) => { let m = Infinity; for (let i = 1; i < pts.length; i++) m = Math.min(m, segDist(p, pts[i - 1], pts[i])); return m; };
+  const roadsM = new Map(plan.features.filter((f) => f.properties.kind === 'road').map((f) => [f, f.geometry.coordinates.map(([lon, lat]) => toM(lat, lon))]));
+  const sinceOf = (f) => {
+    const len = roadsM.get(f).reduce((acc, q, i, arr) => acc + (i ? Math.hypot(q[0] - arr[i - 1][0], q[1] - arr[i - 1][1]) : 0), 0);
+    if (f.properties.road === 'major' || (f.properties.road === 'mid' && len > 600)) return 1900; // дороги района существовали и раньше
+    const dmin = lineDist(core, roadsM.get(f)); // ближайшая к центру точка улицы
+    return (radii.find((e) => e.r >= dmin - 15)?.decade) ?? 2000;
+  };
+  // Названия улиц на старом плане (1960–1980-е): подпись → ближайшая улица (до 45 м), одна подпись — одной улице.
+  const oldNames = new Map();
+  const labelsOld = readJson('../data/raw/oldplan-street-labels.json').labels;
+  for (const lb of labelsOld) {
+    const q = toM(lb.lat, lb.lon);
+    let best = null;
+    for (const [f, pts] of roadsM) { if (f.properties.road === 'major') continue; const dd = lineDist(q, pts); if (dd < 45 && (!best || dd < best.dd)) best = { f, dd }; }
+    if (best && !oldNames.has(best.f)) oldNames.set(best.f, lb.name);
+  }
   for (let i = features.length - 1; i >= 0; i--) if (features[i].properties.kind === 'road') features.splice(i, 1);
   // фон из OSM (поля, жилая зона) оставляем; реку тоже; дороги и здания — из плана
   for (const f of plan.features) {
@@ -78,9 +119,10 @@ if (existsSync(GENPLAN)) {
     if (k === 'road') {
       const pts = flat(g.coordinates);
       if (!inView(pts)) continue;
-      const road = f.properties.road;
-      layers.roads.push(`<path class="road-${road}" d="${d(pts)}"${f.properties.name ? ` data-name="${esc(f.properties.name)}"` : ''}/>`);
-      feat('road', { type: 'LineString', coordinates: ll(pts) }, f.properties.name ? { road, name: f.properties.name } : { road });
+      const road = f.properties.road, since = sinceOf(f), oldName = oldNames.get(f);
+      const mid = px(...pts[Math.floor((pts.length - 1) / 2)]);
+      layers.roads.push(`<path class="road-${road}" d="${d(pts)}" data-since="${since}"${f.properties.name ? ` data-name="${esc(f.properties.name)}"` : ''}${oldName ? ` data-old="${esc(oldName)}"` : ''} data-lx="${mid[0].toFixed(1)}" data-ly="${mid[1].toFixed(1)}"/>`);
+      feat('road', { type: 'LineString', coordinates: ll(pts) }, { road, since, ...(f.properties.name ? { name: f.properties.name } : {}), ...(oldName ? { oldName } : {}) });
     } else if (k === 'building') {
       for (const rings of polyCoords(g)) {
         const pts = flat(rings[0]);

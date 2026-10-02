@@ -15,6 +15,7 @@
   --building: #a48b68;
   --road-major: #a99a74;
   --road: #bcad88;
+  --road-asphalt: #8f8c84;
   --quarter: #e2d6b8;
   --parcel: #c4b794;
   --zone-cemetery: #cfd6bd;
@@ -46,6 +47,7 @@
     --building: #8c7a5a;
     --road-major: #8c8064;
     --road: #756b54;
+    --road-asphalt: #a19d92;
     --quarter: #332f26;
     --parcel: #4a4435;
     --zone-cemetery: #3b4333;
@@ -307,6 +309,7 @@ body[data-drawer="closed"] .drawer { display: none; }
 .base-quarters path { fill: var(--quarter); stroke: var(--parcel); stroke-width: .8; vector-effect: non-scaling-stroke; }
 .base-parcels path { fill: none; stroke: var(--parcel); stroke-width: .6; vector-effect: non-scaling-stroke; }
 .base-roads path { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke: var(--road); vector-effect: non-scaling-stroke; }
+#map:not(.past) .base-roads path, #map:not(.past) .base-roads .road-major { stroke: var(--road-asphalt); }
 .base-roads .road-major { stroke: var(--road-major); stroke-width: 5; }
 .base-roads .road-mid { stroke-width: 3.5; }
 .base-roads .road-street { stroke-width: 2.5; }
@@ -442,8 +445,8 @@ body[data-stage="village"] #map, body[data-stage="village"] .map3d, body[data-st
 .stage-decade, .stage-tools, .unmarked, .legend, .stage-hint, .map-credit, .drawer-open { z-index: 2; }
 .maplibregl-canvas.marking { cursor: crosshair; }
 /* Современная основа (генплан 2020) в прошлых десятилетиях не показывается: остаются река, поля, главные дороги и места. */
-#map.past .base-buildings, #map.past .base-quarters, #map.past .base-parcels, #map.past .base-zones, #map.past .base-residential,
-#map.past .base-roads .road-street, #map.past .base-roads .road-minor { display: none; }
+#map.past .base-buildings, #map.past .base-quarters, #map.past .base-parcels, #map.past .base-zones, #map.past .base-residential { display: none; }
+.map-street-names text { font-style: italic; fill: var(--ink); paint-order: stroke; stroke: var(--land); stroke-width: calc(3px / var(--k, 1)); pointer-events: none; }
 .m3d {
   --c: var(--t-postwar);
   display: flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer;
@@ -482,6 +485,8 @@ body[data-stage="village"] #map, body[data-stage="village"] .map3d, body[data-st
 .recon-label.hl::after { border-top-color: var(--accent); }
 .recon-label.pulse { animation: pulse-l 1.4s ease-in-out infinite; }
 @keyframes pulse-l { 50% { transform-origin: bottom; box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent); } }
+.recon-label.street { background: none; box-shadow: none; padding: 0; font-style: italic; font-size: .72rem; color: var(--ink); text-shadow: 0 0 3px var(--surface), 0 0 6px var(--surface); }
+.recon-label.street::after { display: none; }
 .recon-label.draft { background: var(--surface); outline: 2px dashed var(--focus); pointer-events: none; }
 .era-note {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%); margin: 0; z-index: 2; max-width: min(560px, 70%);

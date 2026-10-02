@@ -9,7 +9,7 @@ const PITCH_3D = 55, BEARING_3D = -15;
 const EMPTY = { type: 'FeatureCollection', features: [] };
 
 let map, opts, is3d = true, today = false;
-let focus = { places: [], isVisible: () => true, highlight: new Set(), pulse: null, overlay: null };
+let focus = { places: [], isVisible: () => true, highlight: new Set(), pulse: null, overlay: null, decade: 2000 };
 const markers = new Map(); // id места → { marker, el }
 let draftMarkers = [];
 let labelZoom = 99;
@@ -71,30 +71,30 @@ export async function initStage(container, options) {
   map.on('click', (e) => { if (opts.onMapClick) opts.onMapClick({ lat: e.lngLat.lat, lon: e.lngLat.lng }); });
 }
 
-export function setFocus({ places, isVisible, highlight = [], pulse = null, today: isToday = false, overlay = null }) {
-  focus = { places, isVisible, highlight: new Set(highlight), pulse, overlay };
+export function setFocus({ places, isVisible, highlight = [], pulse = null, today: isToday = false, overlay = null, decade = 2000 }) {
+  focus = { places, isVisible, highlight: new Set(highlight), pulse, overlay, decade };
   today = isToday;
   applyFocus();
 }
 
-// Названия улиц (по генеральному плану) — подписью у середины улицы, видны при приближении.
+// Названия улиц — подписью у середины улицы, видны при приближении; текст зависит от десятилетия (streetNameAt).
 let streetEls = [];
 function addStreetNames(base) {
   for (const f of base.features) {
-    if (f.properties.kind !== 'road' || !f.properties.name) continue;
+    if (f.properties.kind !== 'road' || !(f.properties.name || f.properties.oldName)) continue;
     const c = f.geometry.coordinates, mid = c[Math.floor((c.length - 1) / 2)];
     const el = document.createElement('div');
     el.className = 'm3d-street';
-    el.textContent = f.properties.name;
     new window.maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(mid).addTo(map);
-    streetEls.push(el);
+    streetEls.push({ el, f });
   }
 }
 
 // Современная основа (генплан 2020) — только в «Сегодня»; в прошлых десятилетиях остаются река, поля, главные дороги.
 const MODERN_LAYERS = ['residential', 'zones', 'quarters', 'parcels', 'buildings-flat'];
-const ROADS_ALL = ['==', ['get', 'kind'], 'road'];
-const ROADS_PAST = ['all', ROADS_ALL, ['in', ['get', 'road'], ['literal', ['major', 'mid']]]];
+// Название улицы — только там, где оно известно из источников: старый план (1960–1980-е) и генплан 2020 («Сегодня»).
+const streetNameAt = (f, decade) => (decade >= 2000 ? f.properties.name : decade >= 1960 && decade <= 1980 ? f.properties.oldName : '') ?? '';
+// Улицы по десятилетию: в каждом — только те, до которых дошла застройка (since рассчитан в scripts/build-base-map.mjs).
 
 // Исторический слой (старый план): растровая картинка по четырём углам; слой меняется вместе с десятилетием.
 let overlayShown = null;
@@ -113,9 +113,15 @@ function applyFocus() {
   if (!map) return;
   applyOverlay(focus.overlay);
   for (const id of MODERN_LAYERS) map.setLayoutProperty(id, 'visibility', today ? 'visible' : 'none');
-  map.setFilter('roads', today ? ROADS_ALL : ROADS_PAST);
+  map.setFilter('roads', ['all', ['==', ['get', 'kind'], 'road'], ['<=', ['get', 'since'], focus.decade]]);
+  // Сегодня улицы асфальтированы — серые; раньше — грунтовые, цвета земли.
+  map.setPaintProperty('roads', 'line-color', today ? css('--road-asphalt') : ['match', ['get', 'road'], 'major', css('--road-major'), css('--road')]);
   const showStreets = map.getZoom() >= labelZoom;
-  for (const el of streetEls) el.classList.toggle('on', showStreets);
+  for (const { el, f } of streetEls) {
+    const nm = streetNameAt(f, focus.decade);
+    el.textContent = nm;
+    el.classList.toggle('on', showStreets && !!nm && f.properties.since <= focus.decade);
+  }
   map.setPaintProperty('buildings-3d', 'fill-extrusion-height', today ? ['get', 'h'] : 0);
   map.setPaintProperty('buildings-flat', 'fill-opacity', today ? 0 : 0.3);
   map.setPaintProperty('buildings-3d', 'fill-extrusion-opacity', today ? 0.92 : 0);
