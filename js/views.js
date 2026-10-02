@@ -269,7 +269,7 @@ export function sourcesView() {
     <section>
       <h2>${esc(t('sources.list'))}</h2>
       <ul class="sources-list">${[...db.sources.values()].map((s) =>
-        `<li>${s.url ? `<a href="${esc(s.url)}">${esc(s.title)}</a>` : `<strong>${esc(s.title)}</strong>`}${s.note ? `<br><span class="muted">${esc(s.note)}</span>` : ''}</li>`).join('')}</ul>
+        `<li><strong>${esc(s.title)}</strong>${s.note ? `<br><span class="muted">${esc(s.note)}</span>` : ''}</li>`).join('')}</ul>
     </section>`);
   return { title: t('nav.sources'), html };
 }

@@ -120,5 +120,13 @@ for (const f of readdirSync(new URL('../assets/photos/', import.meta.url))) {
   if (f.endsWith('.jpg') && !usedPhotos.has(f.slice(0, -4))) err(`assets/photos/${f}: файл нигде не используется`);
 }
 
+// Внешних ссылок на сайте быть не должно: названия источников — только текстом.
+const externalUrl = /https?:\/\/(?!localhost)/;
+for (const f of ['data/decades.json', 'data/events.json', 'data/people.json', 'data/places.json', 'data/sources.json', 'data/project.json', 'data/eras.json', 'index.html']) {
+  const text = readFileSync(new URL(`../${f}`, import.meta.url), 'utf8').replace(/xmlns='?"?[^'" ]*'?"?/g, '');
+  if (externalUrl.test(text)) err(`${f}: внешняя ссылка (адреса сайтов на сайте не нужны)`);
+}
+for (const s of sources) if (s.url) err(`источник ${s.id}: поле url не нужно`);
+
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
 console.log(`OK: событий ${events.length}, людей ${people.length}, мест ${places.length}, фото ${usedPhotos.size}, источников ${sources.length}`);
