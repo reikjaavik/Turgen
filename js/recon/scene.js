@@ -45,8 +45,8 @@ export async function initStage(el, options) {
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color('#bcd3e2');
-  scene.fog = new THREE.Fog('#c9d8e0', 600, 2600);
-  camera = new THREE.PerspectiveCamera(45, 1, 1, 6000);
+  scene.fog = new THREE.Fog("#c9d8e0", 600, 3200);
+  camera = new THREE.PerspectiveCamera(45, 1, 1, 8000);
   scene.add(new THREE.HemisphereLight('#dfeaf2', '#8a7a55', 0.9));
   sun = new THREE.DirectionalLight('#fff3dc', 2.2);
   sun.castShadow = true;
@@ -85,7 +85,7 @@ function resize() {
 // ---------- местность ----------
 let roadMeshes = [];
 function buildGround() {
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: T.steppe(), roughness: 1 }));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(12000, 12000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: T.steppe(), roughness: 1 }));
   ground.receiveShadow = true;
   ground.name = 'ground';
   scene.add(ground);

@@ -210,6 +210,98 @@ function build(type) {
         walls(1, 1, 1, T.brick('#d2cdc2', '#aaa497'), T.facade('mbig', { wall: T.brick('#d2cdc2', '#aaa497'), n: 4, frame: '#e8e8e2' })),
         { geometry: gable(1.04, 1.06, 0.12, 1, 0.1), material: [mat(T.slate()), mat(T.brick('#d2cdc2', '#aaa497'))] },
       ];
+    // Объекты по экспликации генплана 2020: форма условная, место — по плану.
+    case 'public': // кафе, интернат: по контуру здания, размеры задаёт раскладка
+      return [
+        walls(1, 3, 1, T.plaster('#ead9a8'), T.facade('pub', { wall: T.plaster('#ead9a8'), n: 4, frame: '#ffffff', doorColor: '#6b4a36' })),
+        { geometry: gable(1.08, 1.1, 0.4, 3, 0.25), material: [mat(T.metalRoof('#7a3a2e'), { metalness: 0.3, roughness: 0.55 }), mat(T.plaster('#ead9a8'))] },
+      ];
+    case 'warehouse': // склады
+      return [
+        walls(1, 3, 1, T.brick('#c9c2b2', '#a39c8d'), T.facade('wh', { wall: T.brick('#c9c2b2', '#a39c8d'), n: 3, frame: '#d8d8d2', doorColor: '#56606a' })),
+        { geometry: gable(1.04, 1.06, 0.2, 3, 0.2), material: [mat(T.metalRoof('#7d858c'), { metalness: 0.4, roughness: 0.5 }), mat(T.brick('#c9c2b2', '#a39c8d'))] },
+      ];
+    case 'azs': {
+      const red = color('#c4372b'), white = color('#f1f1ec');
+      const parts = [
+        { geometry: box(24, 0.15, 18), material: mat(T.concrete()) },
+        { geometry: box(14, 0.6, 8, 0, 4.9, 2), material: white },
+        { geometry: box(14.2, 0.25, 8.2, 0, 4.7, 2), material: red },
+        { geometry: box(6, 3, 4, 0, 0.15, -6), material: mat(T.plaster('#e8e4d6')) },
+        { geometry: box(6.6, 0.3, 4.6, 0, 3.15, -6), material: red },
+      ];
+      for (const x of [-5, 5]) for (const z of [-0.5, 4.5]) parts.push({ geometry: cyl(0.22, 0.22, 4.7, x, 0.15, z, 10), material: white });
+      for (const x of [-2.5, 2.5]) parts.push({ geometry: box(0.7, 1.5, 0.5, x, 0.15, 2), material: red });
+      return parts;
+    }
+    case 'tanks': {
+      const steel = mat(T.steel(), { metalness: 0.5, roughness: 0.6 });
+      const parts = [{ geometry: box(40, 0.15, 26), material: mat(T.concrete()) }];
+      for (const x of [-12, -4, 4, 12]) for (const z of [-6, 6]) {
+        parts.push({ geometry: cyl(3.3, 3.3, 8, x, 0.15, z, 24), material: steel });
+        parts.push({ geometry: new THREE.ConeGeometry(3.4, 1, 24).translate(x, 8.65, z), material: color('#5b6064', { metalness: 0.4 }) });
+      }
+      return parts;
+    }
+    case 'pitch': {
+      const line = color('#f4f4ee'), post = color('#e8e8e4');
+      const parts = [
+        { geometry: box(60, 0.1, 40), material: color('#6e9a4a') },
+        { geometry: box(60, 0.12, 0.25, 0, 0, 19.8), material: line }, { geometry: box(60, 0.12, 0.25, 0, 0, -19.8), material: line },
+        { geometry: box(0.25, 0.12, 40, 29.8), material: line }, { geometry: box(0.25, 0.12, 40, -29.8), material: line },
+        { geometry: box(0.25, 0.12, 40), material: line },
+      ];
+      for (const s of [-1, 1]) {
+        for (const z of [-3.6, 3.6]) parts.push({ geometry: cyl(0.08, 0.08, 2.4, s * 30, 0, z, 8), material: post });
+        parts.push({ geometry: box(0.1, 0.1, 7.4, s * 30, 2.4), material: post });
+      }
+      return parts;
+    }
+    case 'scales': {
+      const c = mat(T.concrete());
+      return [
+        { geometry: box(3.4, 0.35, 18), material: c },
+        { geometry: box(3.4, 0.1, 18, 0, 0.35), material: color('#6a6f73', { metalness: 0.4 }) },
+        { geometry: box(3, 2.6, 3, 4.2, 0, 0), material: mat(T.plaster('#dcd6c4')) },
+        { geometry: box(3.5, 0.25, 3.5, 4.2, 2.6), material: color('#6a6f73') },
+      ];
+    }
+    case 'haystacks': {
+      const hay = color('#c8a548', { roughness: 1 });
+      const parts = [];
+      for (const [x, z] of [[-7, 0], [0, 3], [7, -1]]) {
+        parts.push({ geometry: cyl(3.4, 3.4, 3, x, 0, z, 16), material: hay });
+        parts.push({ geometry: new THREE.ConeGeometry(3.4, 3.2, 16).translate(x, 4.6, z), material: hay });
+      }
+      return parts;
+    }
+    case 'substation': {
+      const steel = mat(T.steel(), { metalness: 0.5, roughness: 0.6 }), fence = color('#8f969b', { transparent: true, opacity: 0.55 });
+      const parts = [{ geometry: box(24, 0.15, 18), material: mat(T.concrete()) }];
+      for (const x of [-7, 0, 7]) parts.push({ geometry: box(3.2, 3.5, 3, x, 0.15, -3), material: color('#8b9298', { metalness: 0.3 }) });
+      for (const x of [-9, 9]) parts.push({ geometry: box(0.45, 10, 0.45, x, 0.15, 5), material: steel });
+      parts.push({ geometry: box(18.5, 0.3, 0.3, 0, 9.5, 5), material: steel });
+      parts.push({ geometry: box(24, 1.8, 0.05, 0, 0, 9), material: fence }, { geometry: box(24, 1.8, 0.05, 0, 0, -9), material: fence });
+      parts.push({ geometry: box(0.05, 1.8, 18, 12), material: fence }, { geometry: box(0.05, 1.8, 18, -12), material: fence });
+      return parts;
+    }
+    case 'cemetery': {
+      const fence = color('#6a5a48', { transparent: true, opacity: 0.8 }), earth = color('#7b6a52', { roughness: 1 });
+      const parts = [
+        { geometry: box(50, 0.9, 0.12, 0, 0, 20), material: fence }, { geometry: box(50, 0.9, 0.12, 0, 0, -20), material: fence },
+        { geometry: box(0.12, 0.9, 40, 25), material: fence }, { geometry: box(0.12, 0.9, 40, -25), material: fence },
+      ];
+      for (let i = 0; i < 7; i++) for (let j = 0; j < 5; j++) parts.push({ geometry: box(1.1, 0.4, 2.6, -18 + i * 6, 0, -14 + j * 7), material: earth });
+      return parts;
+    }
+    case 'kiln': {
+      const br = T.brick('#b0513a', '#8d7b6a');
+      return [
+        walls(30, 6, 14, br, T.facade('kiln', { wall: br, n: 4, frame: '#d8d0c0', doorColor: '#4e3a26' })),
+        { geometry: gable(31, 15, 2.2, 6, 3), material: [mat(T.slate()), mat(br)] },
+        { geometry: cyl(1.1, 1.7, 32, -16, 0, 0, 20), material: mat(br) },
+      ];
+    }
     case 'tree':
       return [
         { geometry: cyl(0.14, 0.2, 3.2, 0, 0, 0, 8), material: mat(T.bark()) },

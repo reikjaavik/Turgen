@@ -114,8 +114,20 @@ export function layout(prep, eras, decade) {
   const out = [];
   const add = (type, x, z, rot = 0, sx = 1, sy = 1, sz = 1, key = `${type}${x.toFixed(0)}${z.toFixed(0)}`) => out.push({ type, x, z, rot, sx, sy, sz, key });
 
+  // Объекты по экспликации генплана 2020. Кафе, интернат, склады занимают контур ближайшего здания
+  // (до 35 м от отметки) — оно рисуется своей моделью; остальные ставятся на отметку автора.
+  const onPlan = [['internat', 'public'], ['kafe', 'public'], ['sklady', 'warehouse']].map(([id, type]) => {
+    const p = prep.pl[id];
+    if (!p) return null;
+    let best = null, bd = 35;
+    for (const b of prep.buildings) { const d = Math.hypot(b.x - p.x, b.z - p.z); if (d < bd) { bd = d; best = b; } }
+    return { id, type, b: best, p };
+  }).filter(Boolean);
+  const snapped = new Set(onPlan.filter((o) => o.b).map((o) => o.b.id));
+
   if (sc.today) {
     for (const b of prep.buildings) {
+      if (snapped.has(b.id)) continue;
       if (b.area < 260) {
         const v = ['modern-a', 'modern-b', 'modern-c', 'modern-d'][Math.floor(hash(b.id) * 4)];
         add(v, b.x, b.z, b.rot, Math.max(b.w, 4), 1, Math.max(b.d, 4), b.id);
@@ -163,6 +175,16 @@ export function layout(prep, eras, decade) {
     at('pochta', 'brick', 0.1); at('magaziny', 'brick', 0.1); at('pekarnya', 'brick', 0.1);
   }
   if (sc.memorial) at('monument-vov', 'memorial', 0.1);
+  if (sc.today) {
+    for (const o of onPlan) {
+      if (o.b) add(o.type, o.b.x, o.b.z, o.b.rot, Math.max(o.b.w, 6), o.type === 'public' ? 1.1 : 1, Math.max(o.b.d, 6), `${o.type}@${o.id}`);
+      else add(o.type, o.p.x, o.p.z, 0.1, 14, 1, 9, `${o.type}@${o.id}`);
+    }
+    at('azs', 'azs', 0.1); at('neftebaza', 'tanks', 0.1); at('futbolnoe-pole', 'pitch', 0, [1, 1, 1], 10, 0); // размеры поля условные; сдвиг — чтобы не лечь на соседний контур
+    at('vesy', 'scales', 0.1); at('vesy-nedeystvuyushchie', 'scales', 1.2); at('senoval', 'haystacks', 0.3);
+    at('kladbishche', 'cemetery', 0.1); at('kirpichny-zavod', 'kiln', 0.1);
+  }
+  if (decade >= 1980) at('podstantsiya', 'substation', 0.1);
 
   // Деревья — вдоль улиц, детерминированно.
   const trees = [];
