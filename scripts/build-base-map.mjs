@@ -69,8 +69,14 @@ const polyCoords = (g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinate
 if (existsSync(GENPLAN)) {
   const plan = JSON.parse(readFileSync(GENPLAN, 'utf8'));
   // Улицы, которых не было в основе, и названия улиц — со скриншота карты села от автора сайта (scripts/streets/, data/raw/streets-2026.geojson).
-  const STREETS = new URL('../data/raw/streets-2026.geojson', import.meta.url);
-  const extra = existsSync(STREETS) ? JSON.parse(readFileSync(STREETS, 'utf8')) : { features: [], labels: [] };
+  // и дорога к фермам через реку — со спутникового снимка от автора сайта (data/raw/satellite-2026.geojson).
+  const extra = { features: [], labels: [] };
+  for (const name of ['streets-2026', 'satellite-2026']) {
+    const url = new URL(`../data/raw/${name}.geojson`, import.meta.url);
+    if (!existsSync(url)) continue;
+    const fc = JSON.parse(readFileSync(url, 'utf8'));
+    extra.features.push(...fc.features); extra.labels.push(...(fc.labels ?? []));
+  }
   plan.features.push(...extra.features);
   const flat = (coords) => coords.map(([lon, lat]) => [lat, lon]);
   const kinds = { zones: [], quarters: [], parcels: [] };
@@ -228,7 +234,7 @@ writeFileSync(new URL('../assets/map/base.svg', import.meta.url), svg);
 writeFileSync(new URL('../assets/map/base.geojson', import.meta.url), JSON.stringify({
   type: 'FeatureCollection',
   bounds: [view.minLon, view.minLat, view.maxLon, view.maxLat],
-  attribution: '© OpenStreetMap contributors; Microsoft ML Buildings; Overture Maps Foundation (ODbL); генеральный план с. Турген (ТОО «Колдау», 2020); часть улиц и названия улиц — по скриншоту карты села от автора сайта (Яндекс Карты, 2026)',
+  attribution: '© OpenStreetMap contributors; Microsoft ML Buildings; Overture Maps Foundation (ODbL); генеральный план с. Турген (ТОО «Колдау», 2020); часть улиц и названия улиц — по скриншоту карты села от автора сайта (Яндекс Карты, 2026); дорога к фермам через реку — по спутниковому снимку от автора сайта (Google Earth, 2026)',
   features,
 }));
 console.log(`base.svg: ${Object.entries(layers).map(([k, v]) => `${k}=${v.length}`).join(' ')}; ширина ${widthM} м, масштаб ${(widthM / W).toFixed(2)} м/px`);
