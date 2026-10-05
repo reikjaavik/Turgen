@@ -36,7 +36,7 @@ const d = (pts, close) => pts.map(([la, lo], i) => `${i ? 'L' : 'M'}${px(la, lo)
 const inView = (pts) => pts.some(([la, lo]) => la >= view.minLat && la <= view.maxLat && lo >= view.minLon && lo <= view.maxLon);
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
-const layers = { farmland: [], residential: [], zones: [], quarters: [], parcels: [], river: [], roads: [], buildings: [] };
+const layers = { farmland: [], residential: [], zones: [], quarters: [], parcels: [], river: [], roads: [], boundaries: [], buildings: [] };
 // Те же слои в GeoJSON для 3D-вида: [lon, lat], округление до 6 знаков.
 const features = [];
 const ll = (pts) => pts.map(([la, lo]) => [+lo.toFixed(6), +la.toFixed(6)]);
@@ -158,6 +158,13 @@ if (existsSync(GENPLAN)) {
       if (!inView(pts)) continue;
       (k === 'zone' ? kinds.zones : kinds.quarters).push(`<path d="${d(pts, true)}"${k === 'zone' ? ` class="zone-${f.properties.zone}"` : ''}/>`);
       feat(k, { type: 'Polygon', coordinates: [ll(pts)] }, k === 'zone' ? { zone: f.properties.zone } : {});
+    } else if (k === 'boundary') {
+      // Граница села и «Микрорайон № 1» — со скриншота карты от автора сайта (2026).
+      const pts = flat(g.coordinates[0]);
+      const c = px(pts.reduce((a, q) => a + q[0], 0) / pts.length, pts.reduce((a, q) => a + q[1], 0) / pts.length);
+      const nm = f.properties.name;
+      layers.boundaries.push(`<path class="b-${f.properties.role}" d="${d(pts, true)}"${nm ? ` data-name="${esc(nm)}" data-lx="${c[0].toFixed(1)}" data-ly="${c[1].toFixed(1)}"` : ''}/>`);
+      feat('boundary', { type: 'Polygon', coordinates: [ll(pts)] }, { role: f.properties.role, ...(nm ? { name: nm } : {}) });
     } else if (k === 'parcel') {
       const pts = flat(g.coordinates);
       if (!inView(pts)) continue;
@@ -213,6 +220,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" dat
 <g class="base-parcels">${layers.parcels.join('')}</g>
 <g class="base-river">${layers.river.join('')}</g>
 <g class="base-roads">${layers.roads.join('')}</g>
+<g class="base-boundaries">${layers.boundaries.join('')}</g>
 <g class="base-buildings">${layers.buildings.join('')}</g>
 </svg>
 `;

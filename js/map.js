@@ -134,9 +134,15 @@ function drawStreets() {
   const dec = focus.decade;
   baseEl.querySelectorAll('.base-roads path').forEach((p) => { p.style.display = +p.dataset.since <= dec && (!p.dataset.until || dec <= +p.dataset.until) ? '' : 'none'; });
   baseEl.querySelector('.map-street-names')?.remove();
-  if (zoomK() < 2) return;
   const g = el('g', { class: 'map-street-names' });
   const k = zoomK();
+  // Подписи участков («Микрорайон № 1») — только в «Сегодня», при любом масштабе.
+  if (dec >= 2000) baseEl.querySelectorAll('.base-boundaries path[data-name]').forEach((p) => {
+    const t = el('text', { x: p.dataset.lx, y: p.dataset.ly, 'text-anchor': 'middle', 'font-size': (11 / k).toFixed(2) });
+    t.textContent = p.dataset.name;
+    g.append(t);
+  });
+  if (k < 2) { baseEl.append(g); return; }
   baseEl.querySelectorAll('.base-roads path[data-lx]').forEach((p) => {
     const nm = dec >= 2000 ? p.dataset.name : dec >= 1960 && dec <= 1980 ? p.dataset.old : '';
     if (!nm || +p.dataset.since > dec) return;

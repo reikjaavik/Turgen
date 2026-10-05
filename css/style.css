@@ -307,6 +307,7 @@ body[data-drawer="closed"] .drawer { display: none; }
 .base-zones path { fill: var(--zone-industrial); stroke: none; }
 .base-zones .zone-cemetery { fill: var(--zone-cemetery); }
 .base-quarters path { fill: var(--quarter); stroke: var(--parcel); stroke-width: .8; vector-effect: non-scaling-stroke; }
+.base-boundaries path { fill: none; stroke: var(--accent); stroke-width: 1.2; stroke-dasharray: 5 4; opacity: .75; vector-effect: non-scaling-stroke; }
 .base-parcels path { fill: none; stroke: var(--parcel); stroke-width: .6; vector-effect: non-scaling-stroke; }
 .base-roads path { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke: var(--road); vector-effect: non-scaling-stroke; }
 #map:not(.past) .base-roads path[data-asphalt] { stroke: var(--road-asphalt); } /* асфальт — магистрали и дороги с асфальтом на съёмке */
@@ -445,7 +446,7 @@ body[data-stage="village"] #map, body[data-stage="village"] .map3d, body[data-st
 .stage-decade, .stage-tools, .unmarked, .legend, .stage-hint, .map-credit, .drawer-open { z-index: 2; }
 .maplibregl-canvas.marking { cursor: crosshair; }
 /* Современная основа (генплан 2020) в прошлых десятилетиях не показывается: остаются река, поля, главные дороги и места. */
-#map.past .base-buildings, #map.past .base-quarters, #map.past .base-parcels, #map.past .base-zones, #map.past .base-residential { display: none; }
+#map.past .base-boundaries, #map.past .base-buildings, #map.past .base-quarters, #map.past .base-parcels, #map.past .base-zones, #map.past .base-residential { display: none; }
 .map-street-names text { font-style: italic; fill: var(--ink); paint-order: stroke; stroke: var(--land); stroke-width: calc(3px / var(--k, 1)); pointer-events: none; }
 .m3d {
   --c: var(--t-postwar);

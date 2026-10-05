@@ -140,8 +140,29 @@ def length_m(l):
     m = np.array([to_m(lat, lon) for lon, lat in l]); return float(np.hypot(*np.diff(m, axis=0).T).sum())
 
 
+# Границы со скриншота: красные контуры — граница села и «Микрорайон № 1» за рекой (подпись на скриншоте).
+from skimage.measure import find_contours, approximate_polygon
+red = (r > 200) & (g < 150) & (b < 140) & (r - g > 60)
+red[:, :640] = False; red[:185] = False
+filled = ndimage.binary_fill_holes(ndimage.binary_closing(red, iterations=3))
+rl, rn = ndimage.label(filled)
+bounds = []
+for i in range(1, rn + 1):
+    comp = rl == i
+    if comp.sum() < 20000: continue
+    c = max(find_contours(comp.astype(float), 0.5), key=len)
+    poly = approximate_polygon(c, 6)[:, ::-1]  # (x, y)
+    ring = [to_ll(x, y) for x, y in to_ground(poly)]
+    big = comp.sum() > 400000
+    bounds.append({"type": "Feature", "properties": {"kind": "boundary", "role": "village" if big else "micro", **({} if big else {"name": "Микрорайон № 1"}), "src": "streets-2026"},
+                   "geometry": {"type": "Polygon", "coordinates": [ring]}})
+print('границы:', [(f['properties']['role'], len(f['geometry']['coordinates'][0])) for f in bounds])
+# Значки магазинов на скриншоте (пиксели map.png) → координаты; для отметок мест.
+SHOPS = {'Алатау': (1567 * 1.28, 506 * 1.28), 'Самал': (1477 * 1.28, 648 * 1.28), 'Радуга': (1235 * 1.28, 441 * 1.28), 'Мастерок': (1265 * 1.28, 506 * 1.28)}
+for nm, gp in zip(SHOPS, to_ground(np.array(list(SHOPS.values())))): print(nm.encode('unicode_escape').decode(), to_ll(*gp)[::-1])
+
 feats = [{"type": "Feature", "properties": {"kind": "road", "road": "street" if length_m(l) > 220 else "minor", "src": "streets-2026"},
           "geometry": {"type": "LineString", "coordinates": l}} for l in ll_lines]
-json.dump({"type": "FeatureCollection", "note": "Улицы, которых не было в основе, и названия улиц: сняты со скриншота карты села, предоставленного автором сайта в октябре 2026 г. (Яндекс Карты); точность около 5–10 м.", "labels": labels, "features": feats},
+json.dump({"type": "FeatureCollection", "note": "Улицы, которых не было в основе, и названия улиц: сняты со скриншота карты села, предоставленного автором сайта в октябре 2026 г. (Яндекс Карты); точность около 5–10 м.", "labels": labels, "features": feats + bounds},
           open('data/raw/streets-2026.geojson', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-print(len(feats), len(labels))
+print(len(feats), len(labels), len(bounds))
