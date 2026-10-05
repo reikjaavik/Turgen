@@ -99,7 +99,10 @@ export function placeView(id) {
   if (!pl) return notFound();
   const evs = eventsOf(pl.events);
   const ppl = [...new Set([...evs.flatMap(peopleOf), ...db.people.filter((p) => (p.places ?? []).includes(id))])];
-  const decs = [...new Set(evs.flatMap(decadesOf))].sort((a, b) => a - b);
+  // У места с известными годами (from/to) время — десятилетия, когда оно существует; иначе — по событиям.
+  const decs = pl.from != null || pl.to != null
+    ? db.decades.map((d) => d.decade).filter((n) => placeInDecade(pl, n))
+    : [...new Set(evs.flatMap(decadesOf))].sort((a, b) => a - b);
   const html = page(`
     <p class="crumbs"><a href="#/map">🗺 ${esc(t('nav.map'))}</a></p>
     <h1>${text(pl.name)}</h1>

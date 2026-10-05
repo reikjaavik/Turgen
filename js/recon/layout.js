@@ -160,7 +160,8 @@ export function layout(prep, eras, decade) {
   }
 
   const P = prep.pl;
-  const at = (id, type, rot = 0, s = [1, 1, 1], dx = 0, dz = 0) => { if (P[id]) add(type, P[id].x + dx, P[id].z + dz, rot, ...s, `${type}@${id}`); };
+  // Здание с известным годом постройки (from) не ставится в десятилетиях до этого года.
+  const at = (id, type, rot = 0, s = [1, 1, 1], dx = 0, dz = 0) => { if (P[id] && !(P[id].place.from > decade + 9)) add(type, P[id].x + dx, P[id].z + dz, rot, ...s, `${type}@${id}`); };
   if (sc.kolkhoz) {
     at('kontora', 'kontora30');
     at('krs', 'cowshed30', 0.4); at('krs', 'barn', 0.4, [1, 1, 1], 0, 30);
