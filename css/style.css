@@ -504,3 +504,6 @@ body[data-stage="village"] #map, body[data-stage="village"] .map3d, body[data-st
 
 .map-overlay { pointer-events: none; }
 button.linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+/* Подпись участка («Микрорайон № 1») — заметнее названий улиц. */
+.m3d-street.m3d-area, .recon-label.street.area { font-style: normal; font-weight: 700; font-size: 13px; color: var(--accent); background: var(--surface); padding: 1px 6px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.2); z-index: 3; }

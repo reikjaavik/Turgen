@@ -45,7 +45,7 @@ export async function initStage(container, options) {
             'line-width': ['interpolate', ['linear'], ['zoom'], 13, ['match', ['get', 'road'], 'major', 3, 'mid', 2, 1], 17, ['match', ['get', 'road'], 'major', 12, 'mid', 9, 'street', 7, 4]] },
           layout: { 'line-cap': 'round', 'line-join': 'round' } },
         { id: 'boundaries', type: 'line', source: 'base', filter: ['==', ['get', 'kind'], 'boundary'],
-          paint: { 'line-color': css('--accent'), 'line-width': 1.5, 'line-opacity': 0.75, 'line-dasharray': [4, 3] } },
+          paint: { 'line-color': css('--accent'), 'line-width': 2, 'line-opacity': 0.85, 'line-dasharray': [4, 3] } },
         // Современная застройка: в прошлых десятилетиях — плоская бледная «тень» для ориентира, в «Сегодня» — объёмная.
         { id: 'buildings-flat', type: 'fill', source: 'base', filter: ['==', ['get', 'kind'], 'building'],
           paint: { 'fill-color': css('--building'), 'fill-opacity': 0.3, 'fill-opacity-transition': { duration: 600 } } },
@@ -86,7 +86,7 @@ function addStreetNames(base) {
     if (f.properties.kind === 'boundary' && f.properties.name) { // подпись участка («Микрорайон № 1») — у середины контура
       const r = f.geometry.coordinates[0].slice(0, -1), el = document.createElement('div');
       el.className = 'm3d-street m3d-area';
-      new window.maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([r.reduce((a, q) => a + q[0], 0) / r.length, r.reduce((a, q) => a + q[1], 0) / r.length]).addTo(map);
+      new window.maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([(r.reduce((a, q) => a + q[0], 0) / r.length + Math.min(...r.map((q) => q[0]))) / 2, (r.reduce((a, q) => a + q[1], 0) / r.length + r.reduce((a, q) => (q[0] < a[0] ? q : a))[1]) / 2]).addTo(map);
       areaEls.push({ el, name: f.properties.name });
       continue;
     }

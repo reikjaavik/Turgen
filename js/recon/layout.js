@@ -37,6 +37,8 @@ export function prepare(base, places) {
   const buildings = feats.filter((f) => f.properties.kind === 'building' && f.geometry.type === 'Polygon').map(footprint);
   const roads = feats.filter((f) => f.properties.kind === 'road').map((f) => ({ road: f.properties.road, asphalt: !!f.properties.asphalt, since: f.properties.since ?? 1900, until: f.properties.until, gen: !!f.properties.gen, id: f.properties.id, name: f.properties.name, oldName: f.properties.oldName, pts: f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)) }));
   const river = feats.filter((f) => f.properties.kind === 'river').map((f) => f.geometry.coordinates.map(([lon, lat]) => toXZ(lat, lon)));
+  // Границы со скриншота карты 2026 года: граница села и «Микрорайон № 1».
+  const bounds = feats.filter((f) => f.properties.kind === 'boundary').map((f) => ({ role: f.properties.role, name: f.properties.name, pts: f.geometry.coordinates[0].map(([lon, lat]) => toXZ(lat, lon)) }));
   const pl = Object.fromEntries(places.filter((p) => p.lat != null).map((p) => [p.id, { ...toXZ(p.lat, p.lon), place: p }]));
 
   // Центр старого села — середина отмеченных автором общественных мест (условно).
@@ -48,7 +50,7 @@ export function prepare(base, places) {
   const plots = buildings.filter((b) => b.area < 260 && !nearPlace(b))
     .map((b) => ({ ...b, dist: Math.hypot(b.x - core.x, b.z - core.z) }))
     .sort((a, b) => a.dist - b.dist);
-  return { buildings, plots, roads, river, pl, core };
+  return { buildings, plots, roads, river, bounds, pl, core };
 }
 
 // Каким типом стал дом, построенный в данном периоде: по «смеси» типов этого периода.

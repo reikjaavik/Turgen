@@ -83,7 +83,7 @@ function resize() {
 }
 
 // ---------- местность ----------
-let roadMeshes = [];
+let roadMeshes = [], boundMeshes = [];
 function buildGround() {
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(12000, 12000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: T.steppe(), roughness: 1 }));
   ground.receiveShadow = true;
@@ -94,6 +94,18 @@ function buildGround() {
   roadMeshes = prep.roads.map((r) => {
     const m = ribbon(r.pts, W[r.road] ?? 5, new THREE.MeshStandardMaterial({ map: T.dirt(), roughness: 1 }), 0.08 + (r.road === 'major' ? 0.02 : 0));
     m.userData = { road: r.road, asphalt: r.asphalt, since: r.since, until: r.until, name: r.name, oldName: r.oldName, mid: r.pts[Math.floor((r.pts.length - 1) / 2)] };
+    scene.add(m);
+    return m;
+  });
+  // Граница села и «Микрорайон № 1» (карта 2026 года) — тонкая линия по земле, только в «Сегодня».
+  boundMeshes = (prep.bounds ?? []).map((b) => {
+    const m = ribbon(b.pts, 2.5, new THREE.MeshBasicMaterial({ color: '#a04a22', transparent: true, opacity: 0.75 }), 0.12);
+    m.receiveShadow = false;
+    // подпись — между серединой контура и его западным краем, чтобы не ложилась на подписи ферм
+    const r = b.pts.slice(0, -1), c = { x: r.reduce((a, q) => a + q.x, 0) / r.length, z: r.reduce((a, q) => a + q.z, 0) / r.length };
+    const w = r.reduce((a, q) => (q.x < a.x ? q : a));
+    m.userData = { name: b.name, at: { x: (c.x + w.x) / 2, z: (c.z + w.z) / 2 } };
+    m.visible = false;
     scene.add(m);
     return m;
   });
@@ -128,6 +140,7 @@ function ribbon(pts, width, material, y) {
 // Покрытие «Сегодня»: асфальт — на магистралях и на дорогах, где съёмка генплана отметила асфальт; остальные улицы — грунт
 // (по документам генплана 2020 из 3 км 900 м улиц села асфальтировано лишь 640 м).
 function setRoads(kind, today = false, d = 2000) {
+  for (const m of boundMeshes) m.visible = today;
   for (const m of roadMeshes) {
     m.visible = m.userData.since <= d && (m.userData.until == null || d <= m.userData.until); // «свои логичные улицы»: сеть растёт вместе с селом
     const k = today ? (m.userData.asphalt ? 'asphalt' : 'dirt') : m.userData.road === 'major' ? kind : kind === 'asphalt' ? 'gravel' : kind;
@@ -200,6 +213,18 @@ function updateLabels(rebuild) {
       L.el.textContent = nm;
       L.show = !!nm && m.visible;
     });
+    boundMeshes.forEach((m, i) => {
+      if (!m.userData.name) return;
+      const key = `area:${i}`;
+      if (!labels.has(key)) {
+        const el = document.createElement('div');
+        el.className = 'recon-label street area';
+        el.textContent = m.userData.name;
+        labelsEl.append(el);
+        labels.set(key, { el, p: new THREE.Vector3(m.userData.at.x, 3, m.userData.at.z), area: true });
+      }
+      labels.get(key).show = m.visible;
+    });
     for (const o of focus.places) {
       if (o.lat == null) continue;
       if (!labels.has(o.id)) {
@@ -238,7 +263,7 @@ function updateLabels(rebuild) {
     v.copy(L.p).project(camera);
     const on = L.show && v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
     // Издалека подписываем только выбранные места и центр аула, вблизи — все.
-    const important = L.el.classList.contains('hl') || L.el.classList.contains('draft') || L.o?.type === 'village' || dist < (L.street ? 260 : 400);
+    const important = L.el.classList.contains('hl') || L.el.classList.contains('draft') || L.o?.type === 'village' || L.area || dist < (L.street ? 260 : 400);
     L.el.style.display = on && important ? '' : 'none';
     if (on) L.el.style.transform = `translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px) translate(-50%, -100%)`;
   }
