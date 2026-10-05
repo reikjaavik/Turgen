@@ -68,6 +68,10 @@ const OVERTURE = new URL('../data/raw/overture-buildings.geojson', import.meta.u
 const polyCoords = (g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates);
 if (existsSync(GENPLAN)) {
   const plan = JSON.parse(readFileSync(GENPLAN, 'utf8'));
+  // Улицы, которых не было в основе, и названия улиц — со скриншота карты села от автора сайта (scripts/streets/, data/raw/streets-2026.geojson).
+  const STREETS = new URL('../data/raw/streets-2026.geojson', import.meta.url);
+  const extra = existsSync(STREETS) ? JSON.parse(readFileSync(STREETS, 'utf8')) : { features: [], labels: [] };
+  plan.features.push(...extra.features);
   const flat = (coords) => coords.map(([lon, lat]) => [lat, lon]);
   const kinds = { zones: [], quarters: [], parcels: [] };
   layers.roads = []; layers.buildings = [];
@@ -108,11 +112,24 @@ if (existsSync(GENPLAN)) {
   // Названия улиц на старом плане (1960–1980-е): подпись → ближайшая улица (до 45 м), одна подпись — одной улице.
   const oldNames = new Map();
   const labelsOld = readJson('../data/raw/oldplan-street-labels.json').labels;
-  for (const lb of labelsOld) {
+  // Сначала улицы плана; улицы, добавленные со скриншота 2026 года, получают старое название, только если у плана подходящей улицы нет.
+  const namedOld = new Set();
+  for (const pass of [0, 1]) for (const lb of labelsOld) {
+    if (namedOld.has(lb)) continue;
     const q = toM(lb.lat, lb.lon);
     let best = null;
-    for (const [f, pts] of roadsM) { if (f.properties.road === 'major') continue; const dd = lineDist(q, pts); if (dd < 45 && (!best || dd < best.dd)) best = { f, dd }; }
-    if (best && !oldNames.has(best.f)) oldNames.set(best.f, lb.name);
+    for (const [f, pts] of roadsM) { if (f.properties.road === 'major' || (pass === 0) !== (f.properties.src !== 'streets-2026')) continue; const dd = lineDist(q, pts); if (dd < 45 && (!best || dd < best.dd)) best = { f, dd }; }
+    if (best) { namedOld.add(lb); if (!oldNames.has(best.f)) oldNames.set(best.f, lb.name); }
+  }
+  // Современные названия: точка подписи лежит на улице (до 18 м) и не у её конца — чтобы переулок, упирающийся в улицу, не получил её имя.
+  for (const lb of extra.labels ?? []) {
+    const q = toM(lb.lat, lb.lon);
+    for (const [f, pts] of roadsM) {
+      if (f.properties.road === 'major' || lineDist(q, pts) > 18) continue;
+      const a = pts[0], b = pts[pts.length - 1];
+      if (Math.hypot(q[0] - a[0], q[1] - a[1]) < 30 || Math.hypot(q[0] - b[0], q[1] - b[1]) < 30) continue;
+      f.properties.name = lb.name;
+    }
   }
   for (let i = features.length - 1; i >= 0; i--) if (features[i].properties.kind === 'road') features.splice(i, 1);
   // фон из OSM (поля, жилая зона) оставляем; реку тоже; дороги и здания — из плана
@@ -203,7 +220,7 @@ writeFileSync(new URL('../assets/map/base.svg', import.meta.url), svg);
 writeFileSync(new URL('../assets/map/base.geojson', import.meta.url), JSON.stringify({
   type: 'FeatureCollection',
   bounds: [view.minLon, view.minLat, view.maxLon, view.maxLat],
-  attribution: '© OpenStreetMap contributors; Microsoft ML Buildings; Overture Maps Foundation (ODbL); генеральный план с. Турген (ТОО «Колдау», 2020)',
+  attribution: '© OpenStreetMap contributors; Microsoft ML Buildings; Overture Maps Foundation (ODbL); генеральный план с. Турген (ТОО «Колдау», 2020); часть улиц и названия улиц — по скриншоту карты села от автора сайта (Яндекс Карты, 2026)',
   features,
 }));
 console.log(`base.svg: ${Object.entries(layers).map(([k, v]) => `${k}=${v.length}`).join(' ')}; ширина ${widthM} м, масштаб ${(widthM / W).toFixed(2)} м/px`);
