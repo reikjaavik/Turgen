@@ -5,11 +5,12 @@
 // Манифест: data/photo-manifest.json — [{ id, slide, media }], откуда взято каждое фото.
 import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 import sharp from 'sharp';
+import { fileURLToPath } from 'node:url';
 
 const deck = process.argv[2];
 if (!deck) { console.error('Укажите папку распакованного pptx'); process.exit(1); }
 const manifest = JSON.parse(readFileSync(new URL(process.argv[3] ?? '../data/photo-manifest.json', import.meta.url), 'utf8'));
-const MAX = 1100;
+const MAX = +(process.env.PHOTO_MAX ?? 1100); // PHOTO_MAX — меньший размер для больших альбомов
 mkdirSync(new URL('../assets/photos/thumb/', import.meta.url), { recursive: true });
 const THUMB = 360;
 
@@ -33,16 +34,18 @@ for (const { id, slide, media } of manifest) {
   const { rot, crop } = picInfo(slide, media);
   const meta = await sharp(src).rotate().metadata(); // .rotate() без аргумента — учёт EXIF
   const W = meta.width, H = meta.height;
-  const left = Math.round(crop.l * W), top = Math.round(crop.t * H);
-  const width = Math.max(1, Math.round(W * (1 - crop.l - crop.r))), height = Math.max(1, Math.round(H * (1 - crop.t - crop.b)));
+  // Обрезка в пределах картинки: в pptx srcRect бывает отрицательным (картинка «вылезает» за рамку) — такие края не режем.
+  const cl = Math.max(0, crop.l), ct = Math.max(0, crop.t), cr = Math.max(0, crop.r), cb = Math.max(0, crop.b);
+  const left = Math.min(W - 1, Math.round(cl * W)), top = Math.min(H - 1, Math.round(ct * H));
+  const width = Math.max(1, Math.min(W - left, Math.round(W * (1 - cl - cr)))), height = Math.max(1, Math.min(H - top, Math.round(H * (1 - ct - cb))));
   // Сначала обрезка (координаты заданы для неповёрнутого оригинала), затем поворот — отдельными шагами.
   const cropped = await sharp(src).rotate().extract({ left, top, width, height }).toBuffer();
   let img = sharp(cropped);
   if (rot) img = sharp(await img.rotate(rot, { background: '#ffffff' }).toBuffer());
   const full = await img.resize({ width: MAX, height: MAX, fit: 'inside', withoutEnlargement: true })
     .flatten({ background: '#ffffff' }).jpeg({ quality: 78, mozjpeg: true }).toBuffer();
-  await sharp(full).toFile(new URL(`../assets/photos/${id}.jpg`, import.meta.url).pathname);
+  await sharp(full).toFile(fileURLToPath(new URL(`../assets/photos/${id}.jpg`, import.meta.url)));
   await sharp(full).resize({ width: THUMB, height: THUMB, fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 70, mozjpeg: true }).toFile(new URL(`../assets/photos/thumb/${id}.jpg`, import.meta.url).pathname);
+    .jpeg({ quality: 70, mozjpeg: true }).toFile(fileURLToPath(new URL(`../assets/photos/thumb/${id}.jpg`, import.meta.url)));
   console.log(`${id}: слайд ${slide}, ${media}, поворот ${rot}°, обрезка ${JSON.stringify(crop)}`);
 }

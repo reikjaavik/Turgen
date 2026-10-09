@@ -1882,6 +1882,10 @@
     {
      "id": "chernobyl-doc",
      "ref": "раздел 2.2.2"
+    },
+    {
+     "id": "chernobyl-deck",
+     "ref": "слайд 8"
     }
    ],
    "groups": [
@@ -1890,7 +1894,21 @@
    "events": [
     "chernobyl"
    ],
-   "life": "род. 02.01.1958"
+   "life": "род. 02.01.1958",
+   "photos": [
+    {
+     "id": "cher-melnik-petr",
+     "caption": {
+      "ru": "Портрет, документы и фотографии — коллаж со слайда презентации «Символ малой Родины — чернобыльцы»"
+     },
+     "sources": [
+      {
+       "id": "chernobyl-deck",
+       "ref": "слайд 8"
+      }
+     ]
+    }
+   ]
   },
   {
    "id": "derevyanko-vasiliy",
@@ -1908,6 +1926,10 @@
     {
      "id": "chernobyl-doc",
      "ref": "раздел 2.2.1"
+    },
+    {
+     "id": "chernobyl-deck",
+     "ref": "слайд 2"
     }
    ],
    "groups": [
@@ -1916,7 +1938,21 @@
    "events": [
     "chernobyl"
    ],
-   "life": "род. 11.08.1949"
+   "life": "род. 11.08.1949",
+   "photos": [
+    {
+     "id": "cher-derevyanko-vasiliy",
+     "caption": {
+      "ru": "Портрет, документы и фотографии — коллаж со слайда презентации «Символ малой Родины — чернобыльцы»"
+     },
+     "sources": [
+      {
+       "id": "chernobyl-deck",
+       "ref": "слайд 2"
+      }
+     ]
+    }
+   ]
   },
   {
    "id": "matveev",
@@ -1934,6 +1970,10 @@
     {
      "id": "chernobyl-doc",
      "ref": "раздел 2.2.4"
+    },
+    {
+     "id": "chernobyl-deck",
+     "ref": "слайд 11"
     }
    ],
    "groups": [
@@ -1941,6 +1981,20 @@
    ],
    "events": [
     "chernobyl"
+   ],
+   "photos": [
+    {
+     "id": "cher-matveev",
+     "caption": {
+      "ru": "Портрет, документы и фотографии — коллаж со слайда презентации «Символ малой Родины — чернобыльцы»"
+     },
+     "sources": [
+      {
+       "id": "chernobyl-deck",
+       "ref": "слайд 11"
+      }
+     ]
+    }
    ]
   },
   {
@@ -1959,6 +2013,10 @@
     {
      "id": "chernobyl-doc",
      "ref": "раздел 2.2.6"
+    },
+    {
+     "id": "chernobyl-deck",
+     "ref": "слайд 5"
     }
    ],
    "groups": [
@@ -1967,7 +2025,21 @@
    "events": [
     "chernobyl"
    ],
-   "life": "род. 07.06.1960"
+   "life": "род. 07.06.1960",
+   "photos": [
+    {
+     "id": "cher-kovalev",
+     "caption": {
+      "ru": "Портрет, документы и фотографии — коллаж со слайда презентации «Символ малой Родины — чернобыльцы»"
+     },
+     "sources": [
+      {
+       "id": "chernobyl-deck",
+       "ref": "слайд 5"
+      }
+     ]
+    }
+   ]
   },
   {
    "id": "rikhter",
@@ -2011,6 +2083,10 @@
     {
      "id": "chernobyl-doc",
      "ref": "раздел 2.2.7"
+    },
+    {
+     "id": "chernobyl-deck",
+     "ref": "слайд 3"
     }
    ],
    "groups": [
@@ -2019,7 +2095,21 @@
    "events": [
     "chernobyl"
    ],
-   "life": "род. 15.04.1956"
+   "life": "род. 15.04.1956",
+   "photos": [
+    {
+     "id": "cher-mayer",
+     "caption": {
+      "ru": "Портрет, документы и фотографии — коллаж со слайда презентации «Символ малой Родины — чернобыльцы»"
+     },
+     "sources": [
+      {
+       "id": "chernobyl-deck",
+       "ref": "слайд 3"
+      }
+     ]
+    }
+   ]
   },
   {
    "id": "tsymbal",
@@ -2089,6 +2179,10 @@
     {
      "id": "chernobyl-doc",
      "ref": "раздел 2.2.5"
+    },
+    {
+     "id": "chernobyl-deck",
+     "ref": "слайд 4"
     }
    ],
    "groups": [
@@ -2097,7 +2191,21 @@
    "events": [
     "chernobyl"
    ],
-   "life": "род. 18.06.1957"
+   "life": "род. 18.06.1957",
+   "photos": [
+    {
+     "id": "cher-polyakov",
+     "caption": {
+      "ru": "Портрет, документы и фотографии — коллаж со слайда презентации «Символ малой Родины — чернобыльцы»"
+     },
+     "sources": [
+      {
+       "id": "chernobyl-deck",
+       "ref": "слайд 4"
+      }
+     ]
+    }
+   ]
   },
   {
    "id": "velichko",
@@ -2115,6 +2223,10 @@
     {
      "id": "chernobyl-doc",
      "ref": "раздел 2.2.8"
+    },
+    {
+     "id": "chernobyl-deck",
+     "ref": "слайд 6"
     }
    ],
    "groups": [
@@ -2123,7 +2235,21 @@
    "events": [
     "chernobyl"
    ],
-   "life": "род. 02.09.1960"
+   "life": "род. 02.09.1960",
+   "photos": [
+    {
+     "id": "cher-velichko",
+     "caption": {
+      "ru": "Портрет, документы и фотографии — коллаж со слайда презентации «Символ малой Родины — чернобыльцы»"
+     },
+     "sources": [
+      {
+       "id": "chernobyl-deck",
+       "ref": "слайд 6"
+      }
+     ]
+    }
+   ]
   },
   {
    "id": "rodnov-ivan",
@@ -2141,6 +2267,10 @@
     {
      "id": "chernobyl-doc",
      "ref": "раздел 2.2.9"
+    },
+    {
+     "id": "chernobyl-deck",
+     "ref": "слайд 7"
     }
    ],
    "groups": [
@@ -2149,7 +2279,21 @@
    "events": [
     "chernobyl"
    ],
-   "life": "род. 21.07.1960"
+   "life": "род. 21.07.1960",
+   "photos": [
+    {
+     "id": "cher-rodnov-ivan",
+     "caption": {
+      "ru": "Портрет, документы и фотографии — коллаж со слайда презентации «Символ малой Родины — чернобыльцы»"
+     },
+     "sources": [
+      {
+       "id": "chernobyl-deck",
+       "ref": "слайд 7"
+      }
+     ]
+    }
+   ]
   },
   {
    "id": "gulya-vladimir",
@@ -2167,6 +2311,10 @@
     {
      "id": "chernobyl-doc",
      "ref": "раздел 2.2.10"
+    },
+    {
+     "id": "chernobyl-deck",
+     "ref": "слайд 10"
     }
    ],
    "groups": [
@@ -2175,7 +2323,21 @@
    "events": [
     "chernobyl"
    ],
-   "life": "род. 11.05.1960"
+   "life": "род. 11.05.1960",
+   "photos": [
+    {
+     "id": "cher-gulya-vladimir",
+     "caption": {
+      "ru": "Портрет, документы и фотографии — коллаж со слайда презентации «Символ малой Родины — чернобыльцы»"
+     },
+     "sources": [
+      {
+       "id": "chernobyl-deck",
+       "ref": "слайд 10"
+      }
+     ]
+    }
+   ]
   },
   {
    "id": "erisov",
@@ -2190,6 +2352,10 @@
     {
      "id": "chernobyl-doc",
      "ref": "список и раздел 2.2.3"
+    },
+    {
+     "id": "chernobyl-deck",
+     "ref": "слайд 9"
     }
    ],
    "groups": [
@@ -2197,6 +2363,20 @@
    ],
    "events": [
     "chernobyl"
+   ],
+   "photos": [
+    {
+     "id": "cher-erisov",
+     "caption": {
+      "ru": "Портрет, документы и фотографии — коллаж со слайда презентации «Символ малой Родины — чернобыльцы»"
+     },
+     "sources": [
+      {
+       "id": "chernobyl-deck",
+       "ref": "слайд 9"
+      }
+     ]
+    }
    ]
   },
   {
