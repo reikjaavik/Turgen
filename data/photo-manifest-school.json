@@ -40,11 +40,6 @@
   "media": "image8.jpeg"
  },
  {
-  "id": "shkola-album-010",
-  "slide": 11,
-  "media": "image10.jpeg"
- },
- {
   "id": "shkola-album-011",
   "slide": 12,
   "media": "image11.jpeg"
@@ -75,49 +70,9 @@
   "media": "image16.jpeg"
  },
  {
-  "id": "shkola-album-017",
-  "slide": 19,
-  "media": "image17.jpeg"
- },
- {
-  "id": "shkola-album-019",
-  "slide": 20,
-  "media": "image19.jpeg"
- },
- {
-  "id": "shkola-album-018",
-  "slide": 20,
-  "media": "image18.jpeg"
- },
- {
-  "id": "shkola-album-021",
-  "slide": 20,
-  "media": "image21.jpeg"
- },
- {
-  "id": "shkola-album-020",
-  "slide": 20,
-  "media": "image20.jpeg"
- },
- {
   "id": "shkola-album-022",
   "slide": 21,
   "media": "image22.jpeg"
- },
- {
-  "id": "shkola-album-023",
-  "slide": 22,
-  "media": "image23.jpeg"
- },
- {
-  "id": "shkola-album-024",
-  "slide": 23,
-  "media": "image24.jpeg"
- },
- {
-  "id": "shkola-album-025",
-  "slide": 24,
-  "media": "image25.jpeg"
  },
  {
   "id": "shkola-album-027",
@@ -135,26 +90,6 @@
   "media": "image28.jpeg"
  },
  {
-  "id": "shkola-album-029",
-  "slide": 27,
-  "media": "image29.jpeg"
- },
- {
-  "id": "shkola-album-030",
-  "slide": 28,
-  "media": "image30.jpeg"
- },
- {
-  "id": "shkola-album-031",
-  "slide": 29,
-  "media": "image31.jpeg"
- },
- {
-  "id": "shkola-album-032",
-  "slide": 30,
-  "media": "image32.jpeg"
- },
- {
   "id": "shkola-album-033",
   "slide": 31,
   "media": "image33.jpeg"
@@ -170,46 +105,6 @@
   "media": "image35.jpeg"
  },
  {
-  "id": "shkola-album-036",
-  "slide": 36,
-  "media": "image36.jpeg"
- },
- {
-  "id": "shkola-album-038",
-  "slide": 37,
-  "media": "image38.jpeg"
- },
- {
-  "id": "shkola-album-037",
-  "slide": 37,
-  "media": "image37.jpeg"
- },
- {
-  "id": "shkola-album-039",
-  "slide": 37,
-  "media": "image39.jpeg"
- },
- {
-  "id": "shkola-album-040",
-  "slide": 38,
-  "media": "image40.jpeg"
- },
- {
-  "id": "shkola-album-041",
-  "slide": 39,
-  "media": "image41.jpeg"
- },
- {
-  "id": "shkola-album-042",
-  "slide": 40,
-  "media": "image42.jpeg"
- },
- {
-  "id": "shkola-album-043",
-  "slide": 41,
-  "media": "image43.jpeg"
- },
- {
   "id": "shkola-album-044",
   "slide": 42,
   "media": "image44.jpeg"
@@ -218,11 +113,6 @@
   "id": "shkola-album-045",
   "slide": 43,
   "media": "image45.jpeg"
- },
- {
-  "id": "shkola-album-046",
-  "slide": 44,
-  "media": "image46.jpeg"
  },
  {
   "id": "shkola-album-047",
@@ -235,84 +125,14 @@
   "media": "image48.jpeg"
  },
  {
-  "id": "shkola-album-049",
-  "slide": 47,
-  "media": "image49.jpeg"
- },
- {
   "id": "shkola-album-050",
   "slide": 48,
   "media": "image50.jpeg"
  },
  {
-  "id": "shkola-album-051",
-  "slide": 49,
-  "media": "image51.jpeg"
- },
- {
-  "id": "shkola-album-052",
-  "slide": 50,
-  "media": "image52.jpeg"
- },
- {
-  "id": "shkola-album-053",
-  "slide": 51,
-  "media": "image53.jpeg"
- },
- {
-  "id": "shkola-album-054",
-  "slide": 52,
-  "media": "image54.jpeg"
- },
- {
-  "id": "shkola-album-055",
-  "slide": 54,
-  "media": "image55.jpeg"
- },
- {
-  "id": "shkola-album-056",
-  "slide": 54,
-  "media": "image56.jpeg"
- },
- {
-  "id": "shkola-album-057",
-  "slide": 55,
-  "media": "image57.jpeg"
- },
- {
-  "id": "shkola-album-058",
-  "slide": 56,
-  "media": "image58.jpeg"
- },
- {
-  "id": "shkola-album-059",
-  "slide": 57,
-  "media": "image59.jpeg"
- },
- {
-  "id": "shkola-album-060",
-  "slide": 58,
-  "media": "image60.jpeg"
- },
- {
-  "id": "shkola-album-061",
-  "slide": 59,
-  "media": "image61.jpeg"
- },
- {
   "id": "shkola-album-062",
   "slide": 60,
   "media": "image62.jpeg"
- },
- {
-  "id": "shkola-album-064",
-  "slide": 61,
-  "media": "image64.jpeg"
- },
- {
-  "id": "shkola-album-063",
-  "slide": 61,
-  "media": "image63.jpeg"
  },
  {
   "id": "shkola-album-065",
@@ -325,26 +145,6 @@
   "media": "image66.jpeg"
  },
  {
-  "id": "shkola-album-068",
-  "slide": 64,
-  "media": "image68.jpeg"
- },
- {
-  "id": "shkola-album-067",
-  "slide": 64,
-  "media": "image67.jpeg"
- },
- {
-  "id": "shkola-album-070",
-  "slide": 64,
-  "media": "image70.jpeg"
- },
- {
-  "id": "shkola-album-069",
-  "slide": 64,
-  "media": "image69.jpeg"
- },
- {
   "id": "shkola-album-071",
   "slide": 65,
   "media": "image71.jpeg"
@@ -355,29 +155,9 @@
   "media": "image72.jpeg"
  },
  {
-  "id": "shkola-album-074",
-  "slide": 68,
-  "media": "image74.jpeg"
- },
- {
-  "id": "shkola-album-073",
-  "slide": 68,
-  "media": "image73.jpeg"
- },
- {
   "id": "shkola-album-075",
   "slide": 69,
   "media": "image75.jpeg"
- },
- {
-  "id": "shkola-album-076",
-  "slide": 70,
-  "media": "image76.jpeg"
- },
- {
-  "id": "shkola-album-077",
-  "slide": 71,
-  "media": "image77.jpeg"
  },
  {
   "id": "shkola-album-078",
@@ -393,46 +173,6 @@
   "id": "shkola-album-080",
   "slide": 74,
   "media": "image80.jpeg"
- },
- {
-  "id": "shkola-album-081",
-  "slide": 75,
-  "media": "image81.jpeg"
- },
- {
-  "id": "shkola-album-083",
-  "slide": 76,
-  "media": "image83.jpeg"
- },
- {
-  "id": "shkola-album-082",
-  "slide": 76,
-  "media": "image82.jpeg"
- },
- {
-  "id": "shkola-album-085",
-  "slide": 77,
-  "media": "image85.jpeg"
- },
- {
-  "id": "shkola-album-084",
-  "slide": 77,
-  "media": "image84.jpeg"
- },
- {
-  "id": "shkola-album-086",
-  "slide": 77,
-  "media": "image86.jpeg"
- },
- {
-  "id": "shkola-album-087",
-  "slide": 78,
-  "media": "image87.jpeg"
- },
- {
-  "id": "shkola-album-088",
-  "slide": 79,
-  "media": "image88.jpeg"
  },
  {
   "id": "shkola-album-089",
@@ -515,16 +255,6 @@
   "media": "image104.jpeg"
  },
  {
-  "id": "shkola-album-105",
-  "slide": 103,
-  "media": "image105.jpeg"
- },
- {
-  "id": "shkola-album-106",
-  "slide": 104,
-  "media": "image106.jpeg"
- },
- {
   "id": "shkola-album-108",
   "slide": 105,
   "media": "image108.jpeg"
@@ -575,16 +305,6 @@
   "media": "image116.jpeg"
  },
  {
-  "id": "shkola-album-118",
-  "slide": 117,
-  "media": "image118.jpeg"
- },
- {
-  "id": "shkola-album-117",
-  "slide": 117,
-  "media": "image117.jpeg"
- },
- {
   "id": "shkola-album-120",
   "slide": 118,
   "media": "image120.png"
@@ -593,50 +313,5 @@
   "id": "shkola-album-119",
   "slide": 118,
   "media": "image119.jpeg"
- },
- {
-  "id": "shkola-album-122",
-  "slide": 119,
-  "media": "image122.jpeg"
- },
- {
-  "id": "shkola-album-121",
-  "slide": 119,
-  "media": "image121.png"
- },
- {
-  "id": "shkola-album-124",
-  "slide": 120,
-  "media": "image124.jpeg"
- },
- {
-  "id": "shkola-album-123",
-  "slide": 120,
-  "media": "image123.jpeg"
- },
- {
-  "id": "shkola-album-126",
-  "slide": 121,
-  "media": "image126.jpeg"
- },
- {
-  "id": "shkola-album-125",
-  "slide": 121,
-  "media": "image125.png"
- },
- {
-  "id": "shkola-album-128",
-  "slide": 122,
-  "media": "image128.jpeg"
- },
- {
-  "id": "shkola-album-127",
-  "slide": 122,
-  "media": "image127.png"
- },
- {
-  "id": "shkola-album-129",
-  "slide": 123,
-  "media": "image129.jpeg"
  }
 ]
