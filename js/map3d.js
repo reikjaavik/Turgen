@@ -139,6 +139,9 @@ function applyFocus() {
   const anyHl = focus.highlight.size > 0;
   const zoomedIn = map.getZoom() >= labelZoom;
   const zones = [];
+  // Выбранное место за краем кадра (например, за рекой, вне села) — подводим карту к нему, масштаб не меняем.
+  const sel = focus.pulse && focus.places.find((o) => o.id === focus.pulse && o.lat != null);
+  if (sel && !map.getBounds().contains([sel.lon, sel.lat])) map.easeTo({ center: [sel.lon, sel.lat], duration: 700 });
   for (const o of focus.places) {
     if (o.lat == null || o.lon == null) continue;
     let m = markers.get(o.id);
