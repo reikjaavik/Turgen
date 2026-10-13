@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const deck = process.argv[2];
 if (!deck) { console.error('Укажите папку распакованного pptx'); process.exit(1); }
 const manifest = JSON.parse(readFileSync(new URL(process.argv[3] ?? '../data/photo-manifest.json', import.meta.url), 'utf8'));
-const MAX = +(process.env.PHOTO_MAX ?? 1100); // PHOTO_MAX — меньший размер для больших альбомов
+const MAX = +(process.env.PHOTO_MAX ?? 1000); // PHOTO_MAX — меньший размер для больших альбомов
 mkdirSync(new URL('../assets/photos/thumb/', import.meta.url), { recursive: true });
 const THUMB = 360;
 
@@ -43,7 +43,7 @@ for (const { id, slide, media } of manifest) {
   let img = sharp(cropped);
   if (rot) img = sharp(await img.rotate(rot, { background: '#ffffff' }).toBuffer());
   const full = await img.resize({ width: MAX, height: MAX, fit: 'inside', withoutEnlargement: true })
-    .flatten({ background: '#ffffff' }).jpeg({ quality: 78, mozjpeg: true }).toBuffer();
+    .flatten({ background: '#ffffff' }).jpeg({ quality: 74, mozjpeg: true }).toBuffer(); // 1000 px, q74 — чтобы сборка одним файлом не превышала 25 МБ
   await sharp(full).toFile(fileURLToPath(new URL(`../assets/photos/${id}.jpg`, import.meta.url)));
   await sharp(full).resize({ width: THUMB, height: THUMB, fit: 'inside', withoutEnlargement: true })
     .jpeg({ quality: 70, mozjpeg: true }).toFile(fileURLToPath(new URL(`../assets/photos/thumb/${id}.jpg`, import.meta.url)));
